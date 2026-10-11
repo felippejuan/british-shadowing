@@ -39,153 +39,257 @@
     </div>
   </header>
 
-  <!-- Hero & Mode Switcher -->
-  <section class="hero-section container">
-    <div class="hero-card">
-      <div class="hero-content">
-        <div class="pill-tag">Pronúncia Britânica Sem Frescura • Dia a Dia Refinado</div>
-        <h2>Treine a melodia, o ritmo e o estalo nítido do inglês britânico contemporâneo.</h2>
-        <p class="hero-desc">
-          O método de <strong>Shadowing</strong> com os macetes do <em>Contemporary Received Pronunciation (Modern RP)</em>.
-          Clique para ouvir, repita de imediato com o microfone e compare sua voz lado a lado com o modelo nativo.
-        </p>
-      </div>
+  <!-- Top Navigation: Mode Switcher -->
+  <nav class="mode-navigation-bar">
+    <div class="container mode-nav-inner">
+      <button id="navSoundboardBtn" class="mode-tab-btn active">
+        <span>⚡</span> Soundboard & Drills Rápidos
+      </button>
+      <button id="navChallengeBtn" class="mode-tab-btn">
+        <span>🗓️</span> Desafio 30 Dias (Treinos de 1 Minuto)
+        <span class="badge-streak" id="streakBadge">0/30</span>
+      </button>
+    </div>
+  </nav>
 
-      <!-- Quick Guia de 4 Regras de Ouro -->
-      <div class="rules-summary">
-        <h3 class="rules-title">As 4 Regras de Ouro da Dicção High Society:</h3>
-        <div class="rules-grid">
-          <div class="rule-chip">
-            <span class="rule-num">1</span>
-            <div>
-              <strong>R Não-Rótico (Sem 'R' caipira):</strong>
-              <p>Nunca enrole a língua no R após vogal (<em>car, water, rather</em>). O R vira um som neutro "uh" ou apenas alonga a vogal anterior.</p>
+  <!-- =======================================================================
+       MODE 1: SOUNDBOARD & FAST DRILLS VIEW
+       ======================================================================= -->
+  <div id="soundboardView">
+    <!-- Hero & 4 Golden Rules -->
+    <section class="hero-section container">
+      <div class="hero-card">
+        <div class="hero-content">
+          <div class="pill-tag">Pronúncia Britânica Sem Frescura • Dia a Dia Refinado</div>
+          <h2>Treine a melodia, o ritmo e o estalo nítido do inglês britânico contemporâneo.</h2>
+          <p class="hero-desc">
+            O método de <strong>Shadowing</strong> com os macetes do <em>Contemporary Received Pronunciation (Modern RP)</em>.
+            Clique para ouvir, repita de imediato com o microfone e compare sua voz lado a lado com o modelo nativo.
+          </p>
+        </div>
+
+        <div class="rules-summary">
+          <h3 class="rules-title">As 4 Regras de Ouro da Dicção High Society:</h3>
+          <div class="rules-grid">
+            <div class="rule-chip">
+              <span class="rule-num">1</span>
+              <div>
+                <strong>R Não-Rótico (Sem 'R' caipira):</strong>
+                <p>Nunca enrole a língua no R após vogal (<em>car, water, rather</em>). O R vira um som neutro "uh" ou apenas alonga a vogal.</p>
+              </div>
+            </div>
+            <div class="rule-chip">
+              <span class="rule-num">2</span>
+              <div>
+                <strong>O 'T' Nítido e Aspirado:</strong>
+                <p>Nada do "D" americano (evite "wader" para <em>water</em>). O T britânico fino bate atrás dos dentes com um estalo seco e limpo.</p>
+              </div>
+            </div>
+            <div class="rule-chip">
+              <span class="rule-num">3</span>
+              <div>
+                <strong>O 'Broad A' de Garganta (/ɑː/):</strong>
+                <p>Em <em>bath, glass, can't, after</em>, abra a boca verticalmente e produza um 'A' longo e profundo, nunca o 'É' nasal americano.</p>
+              </div>
+            </div>
+            <div class="rule-chip">
+              <span class="rule-num">4</span>
+              <div>
+                <strong>Ditongo /əʊ/ ("eh-oo" elegante):</strong>
+                <p>Em <em>go, no, home, don't</em>, comece com a boca relaxada e deslize suavemente para o "u". Soa como "nê-oo", nunca "nô".</p>
+              </div>
             </div>
           </div>
-          <div class="rule-chip">
-            <span class="rule-num">2</span>
-            <div>
-              <strong>O 'T' Nítido e Aspirado:</strong>
-              <p>Nada do "D" americano (evite "wader" para <em>water</em>). O T britânico fino bate atrás dos dentes com um estalo seco e limpo.</p>
-            </div>
-          </div>
-          <div class="rule-chip">
-            <span class="rule-num">3</span>
-            <div>
-              <strong>O 'Broad A' de Garganta (/ɑː/):</strong>
-              <p>Em <em>bath, glass, can't, after</em>, abra a boca verticalmente e produza um 'A' longo e profundo, nunca o 'É' nasal americano.</p>
-            </div>
-          </div>
-          <div class="rule-chip">
-            <span class="rule-num">4</span>
-            <div>
-              <strong>Ditongo /əʊ/ ("eh-oo" elegante):</strong>
-              <p>Em <em>go, no, home, don't</em>, comece com a boca relaxada centralizada e deslize suavemente para o "u". Soa como "nê-oo", nunca "nô".</p>
-            </div>
-          </div>
         </div>
       </div>
-    </div>
-  </section>
-
-  <!-- Interactive Studio Floating Dock / Active Card Modal -->
-  <aside id="shadowingStudio" class="studio-dock container hidden" aria-label="Laboratório de Gravação e Comparação">
-    <div class="studio-dock-card">
-      <div class="studio-header">
-        <div class="studio-badge">Estúdio Ativo de Shadowing</div>
-        <button id="closeStudioBtn" class="btn-icon-close" title="Fechar estúdio">✕</button>
-      </div>
-
-      <div class="studio-body">
-        <div class="studio-phrase-info">
-          <h3 id="studioPhraseText" class="studio-phrase-en">Rather brilliant, actually.</h3>
-          <div class="studio-meta">
-            <span id="studioIpa" class="badge-ipa">/ˈrɑːðə ˈbrɪljənt ˈæktʃuəli/</span>
-            <span id="studioCheat" class="badge-cheat">Mapeamento: "rá-dher brí-liant, ék-tchu-a-li"</span>
-          </div>
-          <p id="studioTip" class="studio-tip-text">Dica: corte o R final de 'rather'. Enfatize o primeiro 'bril-' com elegância e o 'actually' flui com ritmo descendente.</p>
-        </div>
-
-        <!-- Audio controls row -->
-        <div class="studio-controls-row">
-          <!-- Play Native -->
-          <button id="studioPlayNativeBtn" class="btn-primary studio-action-btn">
-            <span class="icon">🔊</span>
-            <span>Ouvir Nativo</span>
-          </button>
-
-          <!-- Record User Voice -->
-          <button id="studioRecordBtn" class="btn-record studio-action-btn">
-            <span class="icon">🎙️</span>
-            <span id="studioRecordLabel">Gravar Minha Voz</span>
-          </button>
-
-          <!-- Playback User Voice -->
-          <button id="studioPlayUserBtn" class="btn-secondary studio-action-btn" disabled>
-            <span class="icon">🎧</span>
-            <span>Minha Gravação</span>
-          </button>
-
-          <!-- Shadowing Dual Play (Side by Side) -->
-          <button id="studioPlayDualBtn" class="btn-accent studio-action-btn" disabled title="Toca o áudio nativo e a sua voz sobrepostos para comparar o ritmo e a melodia">
-            <span class="icon">⚡</span>
-            <span>Comparar Ritmo (Dual)</span>
-          </button>
-        </div>
-
-        <!-- Real-time Speech Recognition Feedback -->
-        <div class="studio-feedback-bar">
-          <div class="stt-status">
-            <span class="stt-dot"></span>
-            <span id="sttStatusText">Aguardando gravação para validação de pronúncia...</span>
-          </div>
-          <div id="sttTranscriptWrap" class="stt-transcript-box hidden">
-            <span class="stt-label">O que o algoritmo britânico ouviu:</span>
-            <p id="sttTranscriptText" class="stt-transcript-val"></p>
-          </div>
-        </div>
-
-        <!-- Live waveform visualizer canvas -->
-        <div class="waveform-container">
-          <canvas id="studioVisualizerCanvas" height="50"></canvas>
-        </div>
-      </div>
-    </div>
-  </aside>
-
-  <!-- Filter Bar & Search -->
-  <main class="main-content container">
-    <div class="toolbar-section">
-      <!-- Search Input -->
-      <div class="search-wrap">
-        <span class="search-icon">🔍</span>
-        <input type="text" id="searchInput" placeholder="Buscar frase, palavra, fonema ou dica..." autocomplete="off">
-        <button id="clearSearchBtn" class="clear-search-btn hidden">✕</button>
-      </div>
-
-      <!-- Categories Filter Tabs -->
-      <nav class="categories-tabs" aria-label="Categorias de frases">
-        <button class="cat-pill active" data-cat="all">Todas as Frases (<span id="countAll">0</span>)</button>
-        <button class="cat-pill" data-cat="politeness">Polidez & Diplomacia</button>
-        <button class="cat-pill" data-cat="social">Social & Conversa Casual</button>
-        <button class="cat-pill" data-cat="debate">Reunião & Assertividade</button>
-        <button class="cat-pill" data-cat="drills">Palavras Críticas (Drills)</button>
-        <button class="cat-pill" data-cat="custom">Minhas Frases</button>
-      </nav>
-    </div>
-
-    <!-- Soundboard Grid -->
-    <div class="grid-header">
-      <div class="grid-stats">
-        Exibindo <span id="displayedCount">0</span> frases de treino
-      </div>
-      <button id="openAddCustomModalBtn" class="btn-small-outline">+ Adicionar Frase Própria</button>
-    </div>
-
-    <section id="phrasesGrid" class="soundboard-grid" aria-label="Grade de frases para shadowing">
-      <!-- Cards populated via app.js -->
     </section>
-  </main>
+
+    <!-- Floating Shadowing Studio Dock -->
+    <aside id="shadowingStudio" class="studio-dock container hidden" aria-label="Laboratório de Gravação e Comparação">
+      <div class="studio-dock-card">
+        <div class="studio-header">
+          <div class="studio-badge">Estúdio Ativo de Shadowing</div>
+          <button id="closeStudioBtn" class="btn-icon-close" title="Fechar estúdio">✕</button>
+        </div>
+
+        <div class="studio-body">
+          <div class="studio-phrase-info">
+            <h3 id="studioPhraseText" class="studio-phrase-en">Rather brilliant, actually.</h3>
+            <div class="studio-meta">
+              <span id="studioIpa" class="badge-ipa">/ˈrɑːðə ˈbrɪljənt ˈæktʃuəli/</span>
+              <span id="studioCheat" class="badge-cheat">Mapeamento: "rá-dher brí-liant, ék-tchu-a-li"</span>
+            </div>
+            <p id="studioTip" class="studio-tip-text">Dica: corte o R final de 'rather'. Enfatize o primeiro 'bril-' com elegância e o 'actually' flui com ritmo descendente.</p>
+          </div>
+
+          <div class="studio-controls-row">
+            <button id="studioPlayNativeBtn" class="btn-primary studio-action-btn">
+              <span class="icon">🔊</span>
+              <span>Ouvir Nativo</span>
+            </button>
+            <button id="studioRecordBtn" class="btn-record studio-action-btn">
+              <span class="icon">🎙️</span>
+              <span id="studioRecordLabel">Gravar Minha Voz</span>
+            </button>
+            <button id="studioPlayUserBtn" class="btn-secondary studio-action-btn" disabled>
+              <span class="icon">🎧</span>
+              <span>Minha Gravação</span>
+            </button>
+            <button id="studioPlayDualBtn" class="btn-accent studio-action-btn" disabled title="Toca o áudio nativo e a sua voz sobrepostos para comparar o ritmo e a melodia">
+              <span class="icon">⚡</span>
+              <span>Comparar Ritmo (Dual)</span>
+            </button>
+          </div>
+
+          <div class="studio-feedback-bar">
+            <div class="stt-status">
+              <span class="stt-dot"></span>
+              <span id="sttStatusText">Aguardando gravação para validação de pronúncia...</span>
+            </div>
+            <div id="sttTranscriptWrap" class="stt-transcript-box hidden">
+              <span class="stt-label">O que o algoritmo britânico ouviu:</span>
+              <p id="sttTranscriptText" class="stt-transcript-val"></p>
+            </div>
+          </div>
+
+          <div class="waveform-container">
+            <canvas id="studioVisualizerCanvas" height="50"></canvas>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Toolbar, Filters & Soundboard Grid -->
+    <main class="main-content container">
+      <div class="toolbar-section">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchInput" placeholder="Buscar frase, palavra, fonema ou dica..." autocomplete="off">
+          <button id="clearSearchBtn" class="clear-search-btn hidden">✕</button>
+        </div>
+
+        <nav class="categories-tabs" aria-label="Categorias de frases">
+          <button class="cat-pill active" data-cat="all">Todas as Frases (<span id="countAll">0</span>)</button>
+          <button class="cat-pill" data-cat="politeness">Polidez & Diplomacia</button>
+          <button class="cat-pill" data-cat="social">Social & Conversa Casual</button>
+          <button class="cat-pill" data-cat="debate">Reunião & Assertividade</button>
+          <button class="cat-pill" data-cat="drills">Palavras Críticas (Drills)</button>
+          <button class="cat-pill" data-cat="custom">Minhas Frases</button>
+        </nav>
+      </div>
+
+      <div class="grid-header">
+        <div class="grid-stats">
+          Exibindo <span id="displayedCount">0</span> frases de treino rápido
+        </div>
+        <button id="openAddCustomModalBtn" class="btn-small-outline">+ Adicionar Frase Própria</button>
+      </div>
+
+      <section id="phrasesGrid" class="soundboard-grid" aria-label="Grade de frases para shadowing">
+        <!-- Cards populated via app.js -->
+      </section>
+    </main>
+  </div>
+
+  <!-- =======================================================================
+       MODE 2: 30-DAY CHALLENGE VIEW (1-MINUTE AUDIO WORKOUTS)
+       ======================================================================= -->
+  <div id="challengeView" class="challenge-section container hidden">
+    <!-- Hero / Progress Bar -->
+    <div class="challenge-hero">
+      <div class="challenge-hero-top">
+        <div>
+          <span class="pill-tag">Programa Intensivo de 30 Dias</span>
+          <h2 class="challenge-hero-title">O Desafio dos 30 Dias de Shadowing Britânico</h2>
+          <p class="hero-desc">Um texto corrido de ~1 minuto por dia com áudio gravado em alta definição neural (Ryan & Sonia), transcrição frase a frase e macetes para destravar a sua dicção.</p>
+        </div>
+        <div class="challenge-progress-box">
+          <div class="progress-label-row">
+            <span>Progresso da Jornada:</span>
+            <span id="challengePercent">0%</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div id="challengeProgressBar" class="progress-bar-fill"></div>
+          </div>
+          <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; text-align: right;">
+            <span id="challengeCompletedCount">0</span> de 30 dias concluídos
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Challenge Split Layout -->
+    <div class="challenge-grid-layout">
+      <!-- Left: Days Sidebar -->
+      <aside class="challenge-sidebar" aria-label="Lista de Dias do Desafio">
+        <h3 class="sidebar-title">Calendário de Treinos</h3>
+        <div id="challengeDaysList">
+          <!-- Populated via app.js -->
+        </div>
+      </aside>
+
+      <!-- Right: Active Day Workout Panel -->
+      <section class="challenge-workout-panel" aria-label="Painel de Treino do Dia">
+        <div class="workout-header">
+          <span id="workoutDayTag" class="workout-day-tag">Dia 1 de 30</span>
+          <h2 id="workoutDayTitle" class="workout-day-title">Morning Routine & The Silent 'R'</h2>
+          <div id="workoutFocusBadge" class="workout-focus-badge">Foco: O 'R' Não-Rótico (Non-Rhoticity)</div>
+        </div>
+
+        <!-- Master 1-Minute Audio Player -->
+        <div class="master-audio-player-card">
+          <div class="audio-player-meta">
+            <span class="audio-track-label">🎧 Áudio Master Oficial (~1 min de fala nativa contínua)</span>
+            <div class="audio-speed-chips">
+              <button class="audio-speed-chip" data-speed="0.75">0.75x</button>
+              <button class="audio-speed-chip" data-speed="0.9">0.9x</button>
+              <button class="audio-speed-chip active" data-speed="1.0">1.0x</button>
+            </div>
+          </div>
+
+          <div class="audio-controls-wrap">
+            <button id="masterPlayBtn" class="btn-master-play" title="Tocar / Pausar áudio de 1 minuto">▶</button>
+            <div class="audio-slider-wrap">
+              <input type="range" id="masterSeekSlider" class="audio-seek-slider" min="0" max="100" value="0">
+              <span id="masterTimeDisplay" class="audio-time-display">0:00 / 0:00</span>
+            </div>
+          </div>
+
+          <!-- Hidden Native Audio Element -->
+          <audio id="masterAudioElem" preload="metadata"></audio>
+        </div>
+
+        <!-- Master Script Display -->
+        <div class="workout-script-box">
+          <div class="script-box-label">Texto Completo da Lição de 1 Minuto:</div>
+          <p id="workoutScriptFull" class="script-full-text"></p>
+        </div>
+
+        <!-- Brazilian Advice Card -->
+        <div class="brazilian-advice-card">
+          <h4 class="brazilian-advice-title">💡 Macete de Ouro para Brasileiros:</h4>
+          <p id="workoutBrazilianTip" class="brazilian-advice-text"></p>
+        </div>
+
+        <!-- Sentence Breakdown List -->
+        <h3 class="breakdown-title">Treino Frase a Frase (Shadowing Minucioso):</h3>
+        <div id="workoutSentenceList" class="sentence-breakdown-list">
+          <!-- Populated via app.js -->
+        </div>
+
+        <!-- Workout Footer Action -->
+        <div class="workout-footer-row">
+          <button id="toggleCompleteDayBtn" class="btn-toggle-complete">
+            <span id="completeDayIcon">✓</span>
+            <span id="completeDayLabel">Marcar Dia como Concluído</span>
+          </button>
+          <div style="font-size: 0.82rem; color: var(--text-muted);">
+            Seu progresso fica salvo automaticamente neste navegador.
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
 
   <!-- Modal: Add Custom Phrase -->
   <div id="addModal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
@@ -223,10 +327,11 @@
   <footer class="site-footer container">
     <div class="footer-inner">
       <p><strong>The Posh Lab</strong> — Feito para prática pessoal de shadowing e pronúncia britânica refinada.</p>
-      <p class="footer-note">100% estático • Funciona no navegador via Web Speech API • Pronto para GitHub Pages</p>
+      <p class="footer-note">30 Dias de Treino com Áudios de 1 Minuto • 100% estático • Hospedado no GitHub Pages</p>
     </div>
   </footer>
 
+  <script src="challenge-data.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
