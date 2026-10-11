@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Posh Lab — High Society British Shadowing</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Header / Top Bar -->
+  <header class="site-header">
+    <div class="header-inner container">
+      <div class="brand">
+        <span class="crest-icon">🇬🇧</span>
+        <div>
+          <h1 class="brand-title">The Posh Lab</h1>
+          <p class="brand-subtitle">Modern RP • British High Society Shadowing Studio</p>
+        </div>
+      </div>
+      <div class="header-controls">
+        <!-- Voice selector dropdown -->
+        <div class="voice-picker-wrap">
+          <label for="voiceSelect" class="sr-only">Voz Britânica</label>
+          <span class="voice-badge">Voz:</span>
+          <select id="voiceSelect" class="select-voice" aria-label="Selecione a voz britânica">
+            <option value="">Carregando vozes britânicas...</option>
+          </select>
+        </div>
+        <!-- Speed toggles -->
+        <div class="speed-toggle" role="group" aria-label="Velocidade de reprodução">
+          <button class="speed-btn" data-speed="0.75" title="Mais lento para assimilar a fonética">0.75x</button>
+          <button class="speed-btn" data-speed="0.9" title="Velocidade de transição">0.9x</button>
+          <button class="speed-btn active" data-speed="1.0" title="Velocidade nativa natural">1.0x</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero & Mode Switcher -->
+  <section class="hero-section container">
+    <div class="hero-card">
+      <div class="hero-content">
+        <div class="pill-tag">Pronúncia Britânica Sem Frescura • Dia a Dia Refinado</div>
+        <h2>Treine a melodia, o ritmo e o estalo nítido do inglês britânico contemporâneo.</h2>
+        <p class="hero-desc">
+          O método de <strong>Shadowing</strong> com os macetes do <em>Contemporary Received Pronunciation (Modern RP)</em>.
+          Clique para ouvir, repita de imediato com o microfone e compare sua voz lado a lado com o modelo nativo.
+        </p>
+      </div>
+
+      <!-- Quick Guia de 4 Regras de Ouro -->
+      <div class="rules-summary">
+        <h3 class="rules-title">As 4 Regras de Ouro da Dicção High Society:</h3>
+        <div class="rules-grid">
+          <div class="rule-chip">
+            <span class="rule-num">1</span>
+            <div>
+              <strong>R Não-Rótico (Sem 'R' caipira):</strong>
+              <p>Nunca enrole a língua no R após vogal (<em>car, water, rather</em>). O R vira um som neutro "uh" ou apenas alonga a vogal anterior.</p>
+            </div>
+          </div>
+          <div class="rule-chip">
+            <span class="rule-num">2</span>
+            <div>
+              <strong>O 'T' Nítido e Aspirado:</strong>
+              <p>Nada do "D" americano (evite "wader" para <em>water</em>). O T britânico fino bate atrás dos dentes com um estalo seco e limpo.</p>
+            </div>
+          </div>
+          <div class="rule-chip">
+            <span class="rule-num">3</span>
+            <div>
+              <strong>O 'Broad A' de Garganta (/ɑː/):</strong>
+              <p>Em <em>bath, glass, can't, after</em>, abra a boca verticalmente e produza um 'A' longo e profundo, nunca o 'É' nasal americano.</p>
+            </div>
+          </div>
+          <div class="rule-chip">
+            <span class="rule-num">4</span>
+            <div>
+              <strong>Ditongo /əʊ/ ("eh-oo" elegante):</strong>
+              <p>Em <em>go, no, home, don't</em>, comece com a boca relaxada centralizada e deslize suavemente para o "u". Soa como "nê-oo", nunca "nô".</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Studio Floating Dock / Active Card Modal -->
+  <aside id="shadowingStudio" class="studio-dock container hidden" aria-label="Laboratório de Gravação e Comparação">
+    <div class="studio-dock-card">
+      <div class="studio-header">
+        <div class="studio-badge">Estúdio Ativo de Shadowing</div>
+        <button id="closeStudioBtn" class="btn-icon-close" title="Fechar estúdio">✕</button>
+      </div>
+
+      <div class="studio-body">
+        <div class="studio-phrase-info">
+          <h3 id="studioPhraseText" class="studio-phrase-en">Rather brilliant, actually.</h3>
+          <div class="studio-meta">
+            <span id="studioIpa" class="badge-ipa">/ˈrɑːðə ˈbrɪljənt ˈæktʃuəli/</span>
+            <span id="studioCheat" class="badge-cheat">Mapeamento: "rá-dher brí-liant, ék-tchu-a-li"</span>
+          </div>
+          <p id="studioTip" class="studio-tip-text">Dica: corte o R final de 'rather'. Enfatize o primeiro 'bril-' com elegância e o 'actually' flui com ritmo descendente.</p>
+        </div>
+
+        <!-- Audio controls row -->
+        <div class="studio-controls-row">
+          <!-- Play Native -->
+          <button id="studioPlayNativeBtn" class="btn-primary studio-action-btn">
+            <span class="icon">🔊</span>
+            <span>Ouvir Nativo</span>
+          </button>
+
+          <!-- Record User Voice -->
+          <button id="studioRecordBtn" class="btn-record studio-action-btn">
+            <span class="icon">🎙️</span>
+            <span id="studioRecordLabel">Gravar Minha Voz</span>
+          </button>
+
+          <!-- Playback User Voice -->
+          <button id="studioPlayUserBtn" class="btn-secondary studio-action-btn" disabled>
+            <span class="icon">🎧</span>
+            <span>Minha Gravação</span>
+          </button>
+
+          <!-- Shadowing Dual Play (Side by Side) -->
+          <button id="studioPlayDualBtn" class="btn-accent studio-action-btn" disabled title="Toca o áudio nativo e a sua voz sobrepostos para comparar o ritmo e a melodia">
+            <span class="icon">⚡</span>
+            <span>Comparar Ritmo (Dual)</span>
+          </button>
+        </div>
+
+        <!-- Real-time Speech Recognition Feedback -->
+        <div class="studio-feedback-bar">
+          <div class="stt-status">
+            <span class="stt-dot"></span>
+            <span id="sttStatusText">Aguardando gravação para validação de pronúncia...</span>
+          </div>
+          <div id="sttTranscriptWrap" class="stt-transcript-box hidden">
+            <span class="stt-label">O que o algoritmo britânico ouviu:</span>
+            <p id="sttTranscriptText" class="stt-transcript-val"></p>
+          </div>
+        </div>
+
+        <!-- Live waveform visualizer canvas -->
+        <div class="waveform-container">
+          <canvas id="studioVisualizerCanvas" height="50"></canvas>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Filter Bar & Search -->
+  <main class="main-content container">
+    <div class="toolbar-section">
+      <!-- Search Input -->
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Buscar frase, palavra, fonema ou dica..." autocomplete="off">
+        <button id="clearSearchBtn" class="clear-search-btn hidden">✕</button>
+      </div>
+
+      <!-- Categories Filter Tabs -->
+      <nav class="categories-tabs" aria-label="Categorias de frases">
+        <button class="cat-pill active" data-cat="all">Todas as Frases (<span id="countAll">0</span>)</button>
+        <button class="cat-pill" data-cat="politeness">Polidez & Diplomacia</button>
+        <button class="cat-pill" data-cat="social">Social & Conversa Casual</button>
+        <button class="cat-pill" data-cat="debate">Reunião & Assertividade</button>
+        <button class="cat-pill" data-cat="drills">Palavras Críticas (Drills)</button>
+        <button class="cat-pill" data-cat="custom">Minhas Frases</button>
+      </nav>
+    </div>
+
+    <!-- Soundboard Grid -->
+    <div class="grid-header">
+      <div class="grid-stats">
+        Exibindo <span id="displayedCount">0</span> frases de treino
+      </div>
+      <button id="openAddCustomModalBtn" class="btn-small-outline">+ Adicionar Frase Própria</button>
+    </div>
+
+    <section id="phrasesGrid" class="soundboard-grid" aria-label="Grade de frases para shadowing">
+      <!-- Cards populated via app.js -->
+    </section>
+  </main>
+
+  <!-- Modal: Add Custom Phrase -->
+  <div id="addModal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Adicionar Frase ao Seu Treino</h3>
+        <button id="closeModalBtn" class="btn-icon-close">✕</button>
+      </div>
+      <form id="addCustomForm" class="modal-body">
+        <div class="form-group">
+          <label for="customEn">Frase em Inglês (obrigatório):</label>
+          <input type="text" id="customEn" placeholder="Ex: Splendid, let's catch up on Friday." required>
+        </div>
+        <div class="form-group">
+          <label for="customPt">Tradução / Contexto:</label>
+          <input type="text" id="customPt" placeholder="Ex: Esplêndido, vamos nos falar na sexta.">
+        </div>
+        <div class="form-group">
+          <label for="customCheat">Macete Fonético para Brasileiros (opcional):</label>
+          <input type="text" id="customCheat" placeholder="Ex: splén-did, léts kétch ap on fráidei">
+        </div>
+        <div class="form-group">
+          <label for="customTip">Dica de Articulação / Sotaque (opcional):</label>
+          <input type="text" id="customTip" placeholder="Ex: Estale o 't' de 'let's' sem transformar em 'tchi'.">
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="cancelModalBtn" class="btn-secondary">Cancelar</button>
+          <button type="submit" class="btn-primary">Salvar Frase</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="site-footer container">
+    <div class="footer-inner">
+      <p><strong>The Posh Lab</strong> — Feito para prática pessoal de shadowing e pronúncia britânica refinada.</p>
+      <p class="footer-note">100% estático • Funciona no navegador via Web Speech API • Pronto para GitHub Pages</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
