@@ -672,13 +672,7 @@
     }
     activeChunkLoopIndex = null;
     document.querySelectorAll('.btn-chunk-loop.active').forEach(b => b.classList.remove('active'));
-    if (activeBritishAudio) {
-      activeBritishAudio.pause();
-      activeBritishAudio = null;
-    }
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-    }
+    stopBritishAudio();
   }
 
   function toggleChunkLoop(chunkText, btnEl, chunkIdx) {
@@ -872,21 +866,49 @@
   }
 
   // =========================================================================
-  // 8. Authentic British Audio & Speech Engine
+  // 8. Authentic British Audio & Speech Engine (100% Guaranteed Modern RP)
   // =========================================================================
   let activeBritishAudio = null;
+  let activeAudioQueueToken = 0;
+
+  function stopBritishAudio() {
+    activeAudioQueueToken++;
+    if (activeBritishAudio) {
+      try {
+        activeBritishAudio.pause();
+        activeBritishAudio.currentTime = 0;
+      } catch (e) {}
+      activeBritishAudio = null;
+    }
+    if ('speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch (e) {}
+    }
+  }
 
   function isVoiceTrulyBritish(v) {
     if (!v) return false;
-    const lang = (v.lang || '').toLowerCase();
+    const lang = (v.lang || '').toLowerCase().replace(/_/g, '-');
     const name = (v.name || '').toLowerCase();
-    return lang.includes('en-gb') ||
-           lang.includes('en_gb') ||
-           lang.includes('en-uk') ||
-           lang.includes('en-scotland') ||
-           lang.includes('en-wales') ||
+
+    // Strict blacklisting: Reject non-British accents outright
+    if (lang.includes('en-us') || lang.includes('en-au') || lang.includes('en-ca') ||
+        lang.includes('en-in') || lang.includes('en-za') || lang.includes('en-ie') ||
+        lang.includes('en-nz') || lang.includes('en-ph')) {
+      return false;
+    }
+    if (name.includes('david') || name.includes('zira') || name.includes('mark') ||
+        name.includes('united states') || name.includes('(us)') || name.includes('english (us)')) {
+      return false;
+    }
+
+    // Strict whitelisting for authentic British voices
+    return lang === 'en-gb' ||
+           lang.startsWith('en-gb') ||
+           lang === 'en-uk' ||
            name.includes('united kingdom') ||
-           name.includes('uk') ||
+           name.includes('uk english') ||
            name.includes('british') ||
            name.includes('great britain') ||
            name.includes('george') ||
@@ -909,9 +931,10 @@
     const pool = voices.filter(isVoiceTrulyBritish);
     if (!pool.length) return null;
 
+    // Prioritize natural neural British voices
     const preferred = pool.find(v => {
       const n = v.name.toLowerCase();
-      return n.includes('natural') || n.includes('online') || n.includes('google uk') || n.includes('george') || n.includes('daniel') || n.includes('hazel');
+      return n.includes('natural') || n.includes('online') || n.includes('ryan') || n.includes('sonia') || n.includes('google uk') || n.includes('george') || n.includes('daniel') || n.includes('hazel') || n.includes('libby');
     });
     return preferred || pool[0];
   }
@@ -919,15 +942,16 @@
   function initVoices() {
     function populateVoiceList() {
       if (!voiceSelect) return;
+      const prevVal = voiceSelect.value;
       voiceSelect.innerHTML = '';
 
-      // 1. Studio British RP (Online High-Def) is ALWAYS the default & first option
+      // 1. Studio British RP (Online High-Def Stream) is ALWAYS the primary option
       const optStudio = document.createElement('option');
       optStudio.value = 'online_uk';
       optStudio.textContent = '🇬🇧 British Modern RP (Studio High-Def)';
       voiceSelect.appendChild(optStudio);
 
-      // 2. Discover genuine system British voices (never American)
+      // 2. Genuine system/browser British voices
       let systemGbVoices = [];
       if ('speechSynthesis' in window) {
         const allVoices = window.speechSynthesis.getVoices() || [];
@@ -941,9 +965,12 @@
         voiceSelect.appendChild(opt);
       });
 
-      // Default selection is Studio British High-Def!
-      voiceSelect.value = 'online_uk';
-      selectedBritishVoice = 'online_uk';
+      if (prevVal && [...voiceSelect.options].some(o => o.value === prevVal)) {
+        voiceSelect.value = prevVal;
+      } else {
+        voiceSelect.value = 'online_uk';
+        selectedBritishVoice = 'online_uk';
+      }
     }
 
     populateVoiceList();
@@ -968,6 +995,41 @@
     }
   }
 
+  // Splits long phrases or paragraphs into bite-sized clauses (max 110 chars)
+  // so TTS endpoints never return 400 Bad Request or clip text.
+  function splitTextForTts(text, maxLen = 110) {
+    if (!text) return [];
+    const trimmed = text.trim();
+    if (trimmed.length <= maxLen) return [trimmed];
+
+    const sentences = trimmed.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [trimmed];
+    const parts = [];
+
+    for (let s of sentences) {
+      s = s.trim();
+      if (!s) continue;
+      if (s.length <= maxLen) {
+        parts.push(s);
+      } else {
+        const clauses = s.split(/,\s+/);
+        let curr = '';
+        for (let piece of clauses) {
+          piece = piece.trim();
+          if (!piece) continue;
+          if ((curr ? curr + ', ' + piece : piece).length <= maxLen) {
+            curr = curr ? curr + ', ' + piece : piece;
+          } else {
+            if (curr) parts.push(curr);
+            curr = piece;
+          }
+        }
+        if (curr) parts.push(curr);
+      }
+    }
+
+    return parts.length ? parts : [trimmed.slice(0, maxLen)];
+  }
+
   function speakBritish(text, onEndCallback = null) {
     if (!text || !text.trim()) {
       if (onEndCallback) onEndCallback();
@@ -975,52 +1037,86 @@
     }
     const cleanText = text.trim();
 
-    // Cancel any running speech or audio
-    if (activeBritishAudio) {
-      activeBritishAudio.pause();
-      activeBritishAudio = null;
+    stopBritishAudio();
+
+    // Check if user specifically picked an installed system British voice
+    const isSystemVoiceSelected = (selectedBritishVoice && typeof selectedBritishVoice === 'object' && isVoiceTrulyBritish(selectedBritishVoice));
+
+    if (isSystemVoiceSelected) {
+      speakWithSpeechSynthesis(cleanText, onEndCallback);
+      return;
     }
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
+
+    // Default: Guaranteed British High-Def Online Audio Stream
+    playBritishStreamQueue(cleanText, onEndCallback);
+  }
+
+  function playBritishStreamQueue(fullText, onEndCallback = null) {
+    const parts = splitTextForTts(fullText, 110);
+    if (!parts.length) {
+      if (onEndCallback) onEndCallback();
+      return;
     }
 
-    // Determine if we should use the Studio High-Def British audio stream
-    const isStudioSelected = (!selectedBritishVoice || selectedBritishVoice === 'online_uk');
-    const hasSystemBritishVoice = Boolean(getBestBritishVoice());
+    const currentToken = ++activeAudioQueueToken;
+    let partIndex = 0;
 
-    // When Studio voice is chosen OR device has no native British voice installed:
-    // Use the 100% genuine British English online audio stream!
-    if (isStudioSelected || !hasSystemBritishVoice) {
-      try {
-        const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=en-GB&client=tw-ob&q=${encodeURIComponent(cleanText)}`;
-        const audio = new Audio(audioUrl);
-        audio.playbackRate = playbackSpeed || 1.0;
-        activeBritishAudio = audio;
+    function playNextPart() {
+      if (currentToken !== activeAudioQueueToken) return;
 
-        audio.onended = () => {
-          activeBritishAudio = null;
-          if (onEndCallback) onEndCallback();
-        };
-
-        audio.onerror = () => {
-          activeBritishAudio = null;
-          speakWithSpeechSynthesis(cleanText, onEndCallback);
-        };
-
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-          playPromise.catch(() => {
-            speakWithSpeechSynthesis(cleanText, onEndCallback);
-          });
-        }
+      if (partIndex >= parts.length) {
+        activeBritishAudio = null;
+        if (onEndCallback) onEndCallback();
         return;
-      } catch (err) {
-        // Fallback to SpeechSynthesis
+      }
+
+      const partText = parts[partIndex++];
+      const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=en-GB&client=gtx&q=${encodeURIComponent(partText)}`;
+
+      const audio = new Audio();
+      audio.referrerPolicy = 'no-referrer';
+      audio.src = audioUrl;
+      audio.playbackRate = playbackSpeed || 1.0;
+      activeBritishAudio = audio;
+
+      audio.onended = () => {
+        if (currentToken === activeAudioQueueToken) {
+          playNextPart();
+        }
+      };
+
+      audio.onerror = () => {
+        if (currentToken !== activeAudioQueueToken) return;
+        // If the stream fails, only fallback to SpeechSynthesis IF a genuine British voice exists
+        const sysBritishVoice = getBestBritishVoice();
+        if (sysBritishVoice) {
+          speakWithSpeechSynthesis(partText, () => {
+            if (currentToken === activeAudioQueueToken) playNextPart();
+          });
+        } else {
+          // Skip part or finish gracefully, NEVER play American voice
+          console.warn('Audio stream error for part, continuing without American voice:', partText);
+          playNextPart();
+        }
+      };
+
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          if (currentToken !== activeAudioQueueToken) return;
+          const sysBritishVoice = getBestBritishVoice();
+          if (sysBritishVoice) {
+            speakWithSpeechSynthesis(partText, () => {
+              if (currentToken === activeAudioQueueToken) playNextPart();
+            });
+          } else {
+            playNextPart();
+          }
+        });
       }
     }
 
-    // Otherwise use selected system British voice
-    speakWithSpeechSynthesis(cleanText, onEndCallback);
+    playNextPart();
   }
 
   function speakWithSpeechSynthesis(text, onEndCallback = null) {
@@ -1029,23 +1125,29 @@
       return;
     }
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'en-GB';
-    utterance.rate = playbackSpeed || 1.0;
-    utterance.pitch = 1.0;
-
-    const voice = (selectedBritishVoice && typeof selectedBritishVoice === 'object')
+    const voice = (selectedBritishVoice && typeof selectedBritishVoice === 'object' && isVoiceTrulyBritish(selectedBritishVoice))
       ? selectedBritishVoice
       : getBestBritishVoice();
 
-    if (voice) {
-      utterance.voice = voice;
+    // STRICT CHECK: IF NO GENUINE BRITISH VOICE IS AVAILABLE, NEVER PLAY AMERICAN!
+    if (!voice) {
+      console.warn('No genuine British system voice detected. Refusing to play American fallback.');
+      if (onEndCallback) onEndCallback();
+      return;
     }
 
-    if (onEndCallback) {
-      utterance.onend = onEndCallback;
-      utterance.onerror = onEndCallback;
-    }
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.voice = voice;
+    utterance.lang = voice.lang || 'en-GB';
+    utterance.rate = playbackSpeed || 1.0;
+    utterance.pitch = 1.0;
+
+    utterance.onend = () => {
+      if (onEndCallback) onEndCallback();
+    };
+    utterance.onerror = () => {
+      if (onEndCallback) onEndCallback();
+    };
 
     window.speechSynthesis.speak(utterance);
   }
@@ -1507,7 +1609,7 @@
     studioDock.classList.add('hidden');
     activePhrase = null;
     stopStudioRecording();
-    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    stopBritishAudio();
   }
 
   function resetStudioRecordingState() {
@@ -1819,7 +1921,7 @@
       clearInterval(loopInterval);
       loopActiveOnCard = null;
       btn.classList.remove('active');
-      window.speechSynthesis.cancel();
+      stopBritishAudio();
     } else {
       if (loopInterval) clearInterval(loopInterval);
       document.querySelectorAll('.loop-btn').forEach(b => b.classList.remove('active'));
