@@ -662,13 +662,78 @@
     document.querySelectorAll('.word-token.is-active-inspect').forEach(el => el.classList.remove('is-active-inspect'));
   }
 
+  let activeChunkLoopInterval = null;
+  let activeChunkLoopIndex = null;
+
+  function stopChunkLoop() {
+    if (activeChunkLoopInterval) {
+      clearInterval(activeChunkLoopInterval);
+      activeChunkLoopInterval = null;
+    }
+    activeChunkLoopIndex = null;
+    document.querySelectorAll('.btn-chunk-loop.active').forEach(b => b.classList.remove('active'));
+    if (activeBritishAudio) {
+      activeBritishAudio.pause();
+      activeBritishAudio = null;
+    }
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+  }
+
+  function toggleChunkLoop(chunkText, btnEl, chunkIdx) {
+    if (activeChunkLoopIndex === chunkIdx) {
+      stopChunkLoop();
+    } else {
+      stopChunkLoop();
+      activeChunkLoopIndex = chunkIdx;
+      btnEl.classList.add('active');
+      speakBritish(chunkText);
+      const wordCount = chunkText.split(/\s+/).length;
+      const intervalMs = Math.max(3400, wordCount * 450 + 2200);
+      activeChunkLoopInterval = setInterval(() => {
+        if (activeChunkLoopIndex !== chunkIdx) {
+          stopChunkLoop();
+          return;
+        }
+        speakBritish(chunkText);
+      }, intervalMs);
+    }
+  }
+
+  function breakIntoThoughtGroups(en, pt) {
+    if (!en) return [];
+    const enTrim = en.trim();
+    if (enTrim.length <= 55) {
+      return [{ en: enTrim, pt: (pt || '').trim() }];
+    }
+
+    // Split at major natural breathing clause boundaries
+    const clauseRegex = /,\s+(?=(?:when|where|which|who|while|as|and|but|so|because|although|leaving|contribute|before|after)\b)/i;
+
+    if (clauseRegex.test(enTrim)) {
+      const enParts = enTrim.split(clauseRegex);
+      const ptParts = pt ? pt.split(/,\s+(?=(?:quando|onde|que|enquanto|como|e|mas|então|porque|embora|deixando|antes|depois)\b)/i) : [];
+
+      return enParts.map((p, idx) => ({
+        en: p.trim(),
+        pt: ptParts[idx] ? ptParts[idx].trim() : (idx === 0 ? (pt || '').trim() : '')
+      }));
+    }
+
+    return [{ en: enTrim, pt: (pt || '').trim() }];
+  }
+
   function renderWorkoutScript() {
     if (!currentTrailDay || !workoutFullScriptBox) return;
     workoutFullScriptBox.innerHTML = '';
+    stopChunkLoop();
     const paragraphs = currentTrailDay.paragraphs || [];
 
     if (readingMode === 'interlinear') {
-      // 1. Interlinear Sentence-by-Sentence View
+      // 1. Chunk-by-Chunk Thought Groups View (Optimized for Shadowing!)
+      let chunkGlobalIdx = 1;
+
       paragraphs.forEach((pObj, pIdx) => {
         const pWrapper = document.createElement('div');
         pWrapper.className = 'script-paragraph-item';
@@ -678,15 +743,72 @@
           : [{ en: pObj.text, pt: pObj.textPt }];
 
         sentences.forEach((sPair, sIdx) => {
-          const sCard = document.createElement('div');
-          sCard.className = 'bilingual-sentence-pair';
+          const thoughtGroups = breakIntoThoughtGroups(sPair.en, sPair.pt);
 
-          const enHtml = makeInteractiveTokens(sPair.en, sPair.en);
-          sCard.innerHTML = `
-            <p class="sentence-en">${enHtml}</p>
-            <p class="sentence-pt ${isTranslationVisible ? '' : 'hidden'}">${escapeHtml(sPair.pt)}</p>
-          `;
-          pWrapper.appendChild(sCard);
+          thoughtGroups.forEach(tg => {
+            const sCard = document.createElement('div');
+            sCard.className = 'bilingual-sentence-pair chunk-card';
+
+            const thisIdx = chunkGlobalIdx++;
+            const enHtml = makeInteractiveTokens(tg.en, tg.en);
+            const ptHtml = tg.pt ? escapeHtml(tg.pt) : '';
+
+            sCard.innerHTML = `
+              <div class="chunk-meta-bar">
+                <span class="chunk-badge">Trecho ${String(thisIdx).padStart(2, '0')}</span>
+                <div class="chunk-buttons">
+                  <button class="chunk-action-btn btn-chunk-play" title="Ouvir este trecho com pronúncia britânica">
+                    <span>▶</span> <span>Ouvir</span>
+                  </button>
+                  <button class="chunk-action-btn btn-chunk-loop" title="Repetir em loop com pausa para shadowing">
+                    <span>🔁</span> <span>Loop</span>
+                  </button>
+                  <button class="chunk-action-btn btn-chunk-studio" title="Gravar e comparar sua voz neste trecho">
+                    <span>🎙️</span> <span>Gravar</span>
+                  </button>
+                </div>
+              </div>
+              <p class="sentence-en">${enHtml}</p>
+              ${ptHtml ? `<p class="sentence-pt ${isTranslationVisible ? '' : 'hidden'}">${ptHtml}</p>` : ''}
+            `;
+
+            // Action listeners
+            const btnPlay = sCard.querySelector('.btn-chunk-play');
+            const btnLoop = sCard.querySelector('.btn-chunk-loop');
+            const btnStudio = sCard.querySelector('.btn-chunk-studio');
+
+            if (btnPlay) {
+              btnPlay.addEventListener('click', (e) => {
+                e.stopPropagation();
+                stopChunkLoop();
+                speakBritish(tg.en);
+              });
+            }
+
+            if (btnLoop) {
+              btnLoop.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleChunkLoop(tg.en, btnLoop, thisIdx);
+              });
+            }
+
+            if (btnStudio) {
+              btnStudio.addEventListener('click', (e) => {
+                e.stopPropagation();
+                stopChunkLoop();
+                openStudio({
+                  id: `chunk_${thisIdx}`,
+                  en: tg.en,
+                  pt: tg.pt || `Trecho ${thisIdx}`,
+                  ipa: `[Trecho ${thisIdx}]`,
+                  cheat: `Treino de pronúncia e cadência do Trecho ${thisIdx}`,
+                  tip: pObj.cheatTips || currentTrailDay.brazilianCheatTips
+                });
+              });
+            }
+
+            pWrapper.appendChild(sCard);
+          });
         });
 
         workoutFullScriptBox.appendChild(pWrapper);
@@ -1056,6 +1178,7 @@
   }
 
   function loadDayWorkout(dayNum) {
+    stopChunkLoop();
     const days = window.CHALLENGE_30_DAYS || [];
     const item = days.find(d => d.day === dayNum) || days[0];
     if (!item) return;
@@ -1221,6 +1344,7 @@
   // =========================================================================
   function setupTrailMasterPlayer() {
     trailMasterPlayBtn.addEventListener('click', () => {
+      stopChunkLoop();
       if (trailMasterAudioElem.paused) {
         trailMasterAudioElem.play();
         trailMasterPlayBtn.textContent = "⏸";

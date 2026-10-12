@@ -884,17 +884,17 @@ body {
 .word-token {
   cursor: pointer;
   border-radius: 3px;
-  padding: 1px 2px;
+  padding: 1px 3px;
   transition: all 0.15s ease;
   position: relative;
   display: inline;
+  border-bottom: 1px dotted rgba(196, 151, 51, 0.45);
 }
 
 .word-token:hover {
   background: rgba(196, 151, 51, 0.22);
   color: var(--navy-primary);
-  text-decoration: underline;
-  text-decoration-color: var(--gold-accent);
+  border-bottom: 2px solid var(--gold-accent);
 }
 
 .word-token.is-collocation {
@@ -922,6 +922,59 @@ body {
 .bilingual-sentence-pair:hover {
   border-color: var(--gold-accent);
   box-shadow: 0 4px 14px rgba(14, 30, 56, 0.06);
+}
+
+.chunk-meta-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.65rem;
+  padding-bottom: 0.45rem;
+  border-bottom: 1px dashed #ede7dc;
+}
+
+.chunk-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: #f4efe6;
+  color: var(--navy-primary);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.chunk-buttons {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.chunk-action-btn {
+  background: #ffffff;
+  border: 1px solid #dcd5c5;
+  border-radius: var(--radius-sm);
+  padding: 0.25rem 0.65rem;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--navy-primary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: var(--transition);
+}
+
+.chunk-action-btn:hover {
+  background: var(--navy-primary);
+  color: #ffffff;
+  border-color: var(--navy-primary);
+}
+
+.chunk-action-btn.active {
+  background: var(--racing-green);
+  color: #ffffff;
+  border-color: var(--racing-green);
 }
 
 .sentence-en {

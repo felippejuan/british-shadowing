@@ -984,6 +984,20 @@ window.BRITISH_DICTIONARY = {
     "ipa": "/ˌʌn.dɪˈvaɪ.dɪd/",
     "note": "'Undivided attention' é a maior deferência profissional que se pode conceder a alguém."
   },
+  "remarkably": {
+    "type": "Advérbio de Intensificação Nobre",
+    "contextMeaning": "Descreve algo que chama a atenção pela sua intensidade singular e surpreendente (o profundo equilíbrio e calma de Londres nas primeiras horas da manhã).",
+    "generalMeaning": "notavelmente, extraordinariamente, incrivelmente, de modo impressionante",
+    "ipa": "/rɪˈmɑː.kə.bli/",
+    "note": "No Modern RP, o 'r' após o 'a' não é pronunciado: soa 'ri-mác-uh-bli' com vogal /ɑː/ profunda."
+  },
+  "remarkable": {
+    "type": "Adjetivo",
+    "contextMeaning": "Digno de nota, marcante, impressionante.",
+    "generalMeaning": "notável, marcante, impressionante",
+    "ipa": "/rɪˈmɑː.kə.bl̩/",
+    "note": "Forma adjetiva de 'remarkably'."
+  },
   "get": {
     "type": "Verbo Irregular",
     "contextMeaning": "Deslocar-se ou sair; ao lado de 'out', forma o phrasal verb 'get out' (sair ao ar livre para caminhar).",
