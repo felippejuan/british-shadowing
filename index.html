@@ -173,19 +173,43 @@
           </div>
 
           <!-- Floating Word & Collocation Inspector Popover -->
-          <div id="wordInspectorPopup" class="word-inspector-card hidden" role="dialog" aria-label="Inspetor de Palavras">
+          <div id="wordInspectorPopup" class="word-inspector-card hidden" role="dialog" aria-label="Inspetor de Palavras e Expressões">
             <div class="inspector-header">
               <div class="inspector-term-box">
                 <span class="inspector-flag">🇬🇧</span>
-                <h4 id="inspTerm" class="inspector-term">grounding</h4>
-                <span id="inspIpa" class="inspector-ipa">/ˈɡraʊn.dɪŋ/</span>
+                <div>
+                  <div class="inspector-title-row">
+                    <h4 id="inspTerm" class="inspector-term">grounding</h4>
+                    <span id="inspTypeBadge" class="inspector-badge">Expressão</span>
+                  </div>
+                  <span id="inspIpa" class="inspector-ipa">/ˈɡraʊn.dɪŋ/</span>
+                </div>
               </div>
               <button id="closeInspectorBtn" class="btn-icon-close" title="Fechar">✕</button>
             </div>
+
+            <!-- Dual Mode Switch: Expression vs Isolated Word -->
+            <div id="inspSwitchWrap" class="inspector-switch-wrap hidden">
+              <button id="inspBtnExpr" class="insp-switch-pill active">🔗 Expressão: <strong id="inspExprName">bathed in</strong></button>
+              <button id="inspBtnWord" class="insp-switch-pill">🔤 Palavra: <strong id="inspWordName">bathed</strong></button>
+            </div>
+
             <div class="inspector-body">
-              <p id="inspMeaning" class="inspector-meaning">Reconfortante, que traz calma, equilíbrio mental e estabilidade emocional.</p>
+              <!-- In this context, it means... callout -->
+              <div class="context-meaning-box">
+                <div class="context-label">💡 Neste Contexto (In this context, it means):</div>
+                <p id="inspContextMeaning" class="context-meaning-text">"Reconfortante, que traz calma, equilíbrio mental e estabilidade emocional."</p>
+              </div>
+
+              <!-- General Meaning -->
+              <div class="general-meaning-row">
+                <span class="general-label">Significado geral:</span>
+                <span id="inspGeneralMeaning" class="general-text">aterramento, base, fundamento</span>
+              </div>
+
               <p id="inspNote" class="inspector-note"></p>
             </div>
+
             <div class="inspector-footer">
               <button id="inspAudioBtn" class="inspector-audio-btn">
                 <span>🔊</span> <span>Ouvir Pronúncia</span>

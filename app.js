@@ -118,17 +118,28 @@
   const modeInterlinearBtn = document.getElementById('modeInterlinearBtn');
   const modeParagraphBtn = document.getElementById('modeParagraphBtn');
 
-  // Word Inspector Popover
+  // Word & Collocation Inspector Popover
   const wordInspectorPopup = document.getElementById('wordInspectorPopup');
   const inspTerm = document.getElementById('inspTerm');
+  const inspTypeBadge = document.getElementById('inspTypeBadge');
   const inspIpa = document.getElementById('inspIpa');
-  const inspMeaning = document.getElementById('inspMeaning');
+  const inspSwitchWrap = document.getElementById('inspSwitchWrap');
+  const inspBtnExpr = document.getElementById('inspBtnExpr');
+  const inspExprName = document.getElementById('inspExprName');
+  const inspBtnWord = document.getElementById('inspBtnWord');
+  const inspWordName = document.getElementById('inspWordName');
+  const inspContextMeaning = document.getElementById('inspContextMeaning');
+  const inspGeneralMeaning = document.getElementById('inspGeneralMeaning');
   const inspNote = document.getElementById('inspNote');
   const inspAudioBtn = document.getElementById('inspAudioBtn');
   const inspStarBtn = document.getElementById('inspStarBtn');
   const inspStarIcon = document.getElementById('inspStarIcon');
   const inspStarLabel = document.getElementById('inspStarLabel');
   const closeInspectorBtn = document.getElementById('closeInspectorBtn');
+
+  // Inspector Dual Mode State
+  let activeInspectResult = null;
+  let currentInspectTarget = 'expression';
 
   // Steps & Content
   const workoutFullScriptBox = document.getElementById('workoutFullScriptBox');
@@ -531,38 +542,89 @@
     return html;
   }
 
+  function renderInspectorPayload(data, isCollocation) {
+    if (!data) return;
+    const termText = data.en || data.term || '';
+    activeInspectedTerm = termText;
+
+    if (inspTerm) inspTerm.textContent = termText;
+    if (inspTypeBadge) {
+      inspTypeBadge.textContent = data.type || (isCollocation ? 'Expressão' : 'Palavra');
+      inspTypeBadge.className = 'inspector-badge' + (isCollocation ? ' is-collocation' : '');
+    }
+
+    if (inspIpa) {
+      if (data.ipa) {
+        inspIpa.textContent = data.ipa;
+        inspIpa.style.display = 'inline-block';
+      } else {
+        inspIpa.style.display = 'none';
+      }
+    }
+
+    if (inspContextMeaning) {
+      inspContextMeaning.textContent = `"${data.contextMeaning || data.meaning || data.pt || 'Significado específico para esta passagem do roteiro.'}"`;
+    }
+
+    if (inspGeneralMeaning) {
+      inspGeneralMeaning.textContent = data.generalMeaning || data.meaning || data.pt || 'Consulte o modo Frase a Frase para a tradução paralela.';
+    }
+
+    if (inspNote) {
+      if (data.note) {
+        inspNote.textContent = data.note;
+        inspNote.style.display = 'block';
+      } else {
+        inspNote.style.display = 'none';
+      }
+    }
+
+    // Sync Star button state for the active term
+    const isStarred = vaultStarred.has(activeInspectedTerm);
+    if (inspStarBtn) {
+      inspStarBtn.classList.toggle('starred', isStarred);
+      if (inspStarIcon) inspStarIcon.textContent = isStarred ? '✅' : '⭐️';
+      if (inspStarLabel) inspStarLabel.textContent = isStarred ? 'Salvo no Caderno' : 'Salvar no Caderno';
+    }
+  }
+
   function openWordInspector(tokenEl) {
     const word = tokenEl.getAttribute('data-word');
     const sentence = tokenEl.getAttribute('data-sentence') || '';
 
-    // Lookup word / collocation
-    const info = (window.lookupWord && typeof window.lookupWord === 'function')
+    // Lookup word & expression with Dual Lookup
+    const lookup = (window.lookupWord && typeof window.lookupWord === 'function')
       ? window.lookupWord(word, sentence)
-      : { term: word, meaning: 'Vocabulário do roteiro britânico' };
+      : null;
 
-    activeInspectedTerm = info.term || word;
+    activeInspectResult = lookup || {
+      hasExpression: false,
+      expression: null,
+      word: { en: word, type: 'Palavra Isolada', contextMeaning: 'Termo do texto britânico.', generalMeaning: 'Consulte o modo Frase a Frase.', ipa: '', note: '' },
+      active: { en: word, type: 'Palavra Isolada', contextMeaning: 'Termo do texto britânico.', generalMeaning: 'Consulte o modo Frase a Frase.', ipa: '', note: '' }
+    };
 
     // Highlight token visually
     document.querySelectorAll('.word-token.is-active-inspect').forEach(el => el.classList.remove('is-active-inspect'));
     tokenEl.classList.add('is-active-inspect');
 
-    // Populate Inspector UI
-    inspTerm.textContent = info.term || word;
-    if (info.ipa) {
-      inspIpa.textContent = info.ipa;
-      inspIpa.style.display = 'inline-block';
+    // Dual Mode Switch setup
+    if (activeInspectResult.hasExpression && activeInspectResult.expression) {
+      if (inspSwitchWrap) inspSwitchWrap.classList.remove('hidden');
+      if (inspExprName) inspExprName.textContent = activeInspectResult.expression.en;
+      if (inspWordName) inspWordName.textContent = activeInspectResult.word ? activeInspectResult.word.en : word;
+
+      // Default view: Expression priority
+      currentInspectTarget = 'expression';
+      if (inspBtnExpr) inspBtnExpr.classList.add('active');
+      if (inspBtnWord) inspBtnWord.classList.remove('active');
+      renderInspectorPayload(activeInspectResult.expression, true);
     } else {
-      inspIpa.style.display = 'none';
+      if (inspSwitchWrap) inspSwitchWrap.classList.add('hidden');
+      currentInspectTarget = 'word';
+      const singleItem = activeInspectResult.word || activeInspectResult.active;
+      renderInspectorPayload(singleItem, false);
     }
-
-    inspMeaning.textContent = info.meaning || 'Tradução contextual';
-    inspNote.textContent = info.note || (info.pos ? `Classe gramatical: ${info.pos}` : '');
-
-    // Sync Star button state
-    const isStarred = vaultStarred.has(activeInspectedTerm);
-    inspStarBtn.classList.toggle('starred', isStarred);
-    inspStarIcon.textContent = isStarred ? '✅' : '⭐️';
-    inspStarLabel.textContent = isStarred ? 'Salvo no Caderno' : 'Salvar no Caderno';
 
     // Position popover relative to full script container
     const boxRect = workoutFullScriptBox.getBoundingClientRect();
@@ -570,7 +632,7 @@
 
     wordInspectorPopup.classList.remove('hidden');
 
-    const popupWidth = 320;
+    const popupWidth = 350;
     let left = tokenRect.left - boxRect.left;
     if (left + popupWidth > boxRect.width) {
       left = Math.max(10, boxRect.width - popupWidth - 10);
@@ -1609,6 +1671,31 @@
     // Word Inspector Actions
     if (closeInspectorBtn) {
       closeInspectorBtn.addEventListener('click', closeWordInspector);
+    }
+
+    // Switch between Expression and Isolated Word views in inspector
+    if (inspBtnExpr) {
+      inspBtnExpr.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!activeInspectResult || !activeInspectResult.expression) return;
+        currentInspectTarget = 'expression';
+        inspBtnExpr.classList.add('active');
+        if (inspBtnWord) inspBtnWord.classList.remove('active');
+        renderInspectorPayload(activeInspectResult.expression, true);
+        speakBritish(activeInspectResult.expression.en);
+      });
+    }
+
+    if (inspBtnWord) {
+      inspBtnWord.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!activeInspectResult || !activeInspectResult.word) return;
+        currentInspectTarget = 'word';
+        inspBtnWord.classList.add('active');
+        if (inspBtnExpr) inspBtnExpr.classList.remove('active');
+        renderInspectorPayload(activeInspectResult.word, false);
+        speakBritish(activeInspectResult.word.en);
+      });
     }
 
     if (inspAudioBtn) {
