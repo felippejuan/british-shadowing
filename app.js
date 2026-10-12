@@ -626,21 +626,30 @@
       renderInspectorPayload(singleItem, false);
     }
 
-    // Position popover relative to full script container
-    const boxRect = workoutFullScriptBox.getBoundingClientRect();
+    // Precise Viewport Fixed Positioning (Always visible next to clicked word)
     const tokenRect = tokenEl.getBoundingClientRect();
-
-    wordInspectorPopup.classList.remove('hidden');
-
-    const popupWidth = 350;
-    let left = tokenRect.left - boxRect.left;
-    if (left + popupWidth > boxRect.width) {
-      left = Math.max(10, boxRect.width - popupWidth - 10);
+    const popupWidth = Math.min(360, window.innerWidth - 24);
+    let left = tokenRect.left;
+    if (left + popupWidth > window.innerWidth - 12) {
+      left = window.innerWidth - popupWidth - 12;
     }
-    let top = tokenRect.bottom - boxRect.top + 8;
+    if (left < 12) left = 12;
 
-    wordInspectorPopup.style.left = `${Math.max(10, left)}px`;
-    wordInspectorPopup.style.top = `${top}px`;
+    const estimatedHeight = 310;
+    let top = tokenRect.bottom + 8;
+    // If it overflows the bottom of the screen, position above the clicked word
+    if (top + estimatedHeight > window.innerHeight - 12) {
+      if (tokenRect.top - estimatedHeight - 8 > 12) {
+        top = tokenRect.top - estimatedHeight - 8;
+      } else {
+        top = Math.max(12, Math.floor((window.innerHeight - estimatedHeight) / 2));
+      }
+    }
+
+    wordInspectorPopup.style.position = 'fixed';
+    wordInspectorPopup.style.left = `${Math.round(left)}px`;
+    wordInspectorPopup.style.top = `${Math.round(top)}px`;
+    wordInspectorPopup.classList.remove('hidden');
 
     // Speak British pronunciation
     speakBritish(activeInspectedTerm);
@@ -741,83 +750,174 @@
   }
 
   // =========================================================================
-  // 8. Speech Synthesis & British Voices
+  // 8. Authentic British Audio & Speech Engine
   // =========================================================================
+  let activeBritishAudio = null;
+
+  function isVoiceTrulyBritish(v) {
+    if (!v) return false;
+    const lang = (v.lang || '').toLowerCase();
+    const name = (v.name || '').toLowerCase();
+    return lang.includes('en-gb') ||
+           lang.includes('en_gb') ||
+           lang.includes('en-uk') ||
+           lang.includes('en-scotland') ||
+           lang.includes('en-wales') ||
+           name.includes('united kingdom') ||
+           name.includes('uk') ||
+           name.includes('british') ||
+           name.includes('great britain') ||
+           name.includes('george') ||
+           name.includes('hazel') ||
+           name.includes('daniel') ||
+           name.includes('oliver') ||
+           name.includes('serena') ||
+           name.includes('stephanie') ||
+           name.includes('martha') ||
+           name.includes('arthur') ||
+           name.includes('libby') ||
+           name.includes('susan') ||
+           name.includes('ryan') ||
+           name.includes('sonia');
+  }
+
+  function getBestBritishVoice() {
+    if (!('speechSynthesis' in window)) return null;
+    const voices = window.speechSynthesis.getVoices() || [];
+    const pool = voices.filter(isVoiceTrulyBritish);
+    if (!pool.length) return null;
+
+    const preferred = pool.find(v => {
+      const n = v.name.toLowerCase();
+      return n.includes('natural') || n.includes('online') || n.includes('google uk') || n.includes('george') || n.includes('daniel') || n.includes('hazel');
+    });
+    return preferred || pool[0];
+  }
+
   function initVoices() {
-    if (!('speechSynthesis' in window)) return;
-
     function populateVoiceList() {
-      const voices = window.speechSynthesis.getVoices();
-      if (!voices || voices.length === 0) return;
-
-      const britishVoices = voices.filter(v => {
-        const lang = (v.lang || '').toLowerCase();
-        const name = (v.name || '').toLowerCase();
-        return lang.includes('en-gb') ||
-               lang.includes('en_gb') ||
-               name.includes('united kingdom') ||
-               name.includes('uk') ||
-               name.includes('british') ||
-               name.includes('george') ||
-               name.includes('hazel') ||
-               name.includes('daniel') ||
-               name.includes('oliver') ||
-               name.includes('serena') ||
-               name.includes('stephanie');
-      });
-
+      if (!voiceSelect) return;
       voiceSelect.innerHTML = '';
-      const pool = britishVoices.length > 0 ? britishVoices : voices.filter(v => v.lang.startsWith('en'));
 
-      pool.forEach((v, index) => {
+      // 1. Studio British RP (Online High-Def) is ALWAYS the default & first option
+      const optStudio = document.createElement('option');
+      optStudio.value = 'online_uk';
+      optStudio.textContent = '🇬🇧 British Modern RP (Studio High-Def)';
+      voiceSelect.appendChild(optStudio);
+
+      // 2. Discover genuine system British voices (never American)
+      let systemGbVoices = [];
+      if ('speechSynthesis' in window) {
+        const allVoices = window.speechSynthesis.getVoices() || [];
+        systemGbVoices = allVoices.filter(isVoiceTrulyBritish);
+      }
+
+      systemGbVoices.forEach((v, idx) => {
         const opt = document.createElement('option');
-        opt.value = index;
-        const isGb = v.lang.toLowerCase().includes('gb') || v.name.toLowerCase().includes('uk');
-        opt.textContent = `${v.name} ${isGb ? '(🇬🇧 British)' : `(${v.lang})`}`;
+        opt.value = `sys_${idx}`;
+        opt.textContent = `🇬🇧 ${v.name} (Sistema)`;
         voiceSelect.appendChild(opt);
       });
 
-      const preferredIdx = pool.findIndex(v => {
-        const n = v.name.toLowerCase();
-        return n.includes('natural') || n.includes('google uk') || n.includes('george') || n.includes('hazel') || n.includes('daniel');
-      });
-
-      if (preferredIdx !== -1) {
-        voiceSelect.selectedIndex = preferredIdx;
-        selectedBritishVoice = pool[preferredIdx];
-      } else {
-        selectedBritishVoice = pool[0];
-      }
+      // Default selection is Studio British High-Def!
+      voiceSelect.value = 'online_uk';
+      selectedBritishVoice = 'online_uk';
     }
 
     populateVoiceList();
-    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+    if ('speechSynthesis' in window && window.speechSynthesis.onvoiceschanged !== undefined) {
       window.speechSynthesis.onvoiceschanged = populateVoiceList;
     }
 
-    voiceSelect.addEventListener('change', (e) => {
-      const voices = window.speechSynthesis.getVoices();
-      const britishVoices = voices.filter(v => {
-        const lang = (v.lang || '').toLowerCase();
-        const name = (v.name || '').toLowerCase();
-        return lang.includes('en-gb') || lang.includes('en_gb') || name.includes('united kingdom') || name.includes('uk') || name.includes('british');
+    if (voiceSelect) {
+      voiceSelect.addEventListener('change', (e) => {
+        const val = e.target.value;
+        if (val === 'online_uk') {
+          selectedBritishVoice = 'online_uk';
+        } else if (val.startsWith('sys_')) {
+          const idx = parseInt(val.replace('sys_', ''), 10);
+          if ('speechSynthesis' in window) {
+            const allVoices = window.speechSynthesis.getVoices() || [];
+            const systemGbVoices = allVoices.filter(isVoiceTrulyBritish);
+            selectedBritishVoice = systemGbVoices[idx] || 'online_uk';
+          }
+        }
       });
-      const pool = britishVoices.length > 0 ? britishVoices : voices.filter(v => v.lang.startsWith('en'));
-      selectedBritishVoice = pool[e.target.value] || null;
-    });
+    }
   }
 
   function speakBritish(text, onEndCallback = null) {
-    if (!('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
+    if (!text || !text.trim()) {
+      if (onEndCallback) onEndCallback();
+      return;
+    }
+    const cleanText = text.trim();
+
+    // Cancel any running speech or audio
+    if (activeBritishAudio) {
+      activeBritishAudio.pause();
+      activeBritishAudio = null;
+    }
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+
+    // Determine if we should use the Studio High-Def British audio stream
+    const isStudioSelected = (!selectedBritishVoice || selectedBritishVoice === 'online_uk');
+    const hasSystemBritishVoice = Boolean(getBestBritishVoice());
+
+    // When Studio voice is chosen OR device has no native British voice installed:
+    // Use the 100% genuine British English online audio stream!
+    if (isStudioSelected || !hasSystemBritishVoice) {
+      try {
+        const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=en-GB&client=tw-ob&q=${encodeURIComponent(cleanText)}`;
+        const audio = new Audio(audioUrl);
+        audio.playbackRate = playbackSpeed || 1.0;
+        activeBritishAudio = audio;
+
+        audio.onended = () => {
+          activeBritishAudio = null;
+          if (onEndCallback) onEndCallback();
+        };
+
+        audio.onerror = () => {
+          activeBritishAudio = null;
+          speakWithSpeechSynthesis(cleanText, onEndCallback);
+        };
+
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(() => {
+            speakWithSpeechSynthesis(cleanText, onEndCallback);
+          });
+        }
+        return;
+      } catch (err) {
+        // Fallback to SpeechSynthesis
+      }
+    }
+
+    // Otherwise use selected system British voice
+    speakWithSpeechSynthesis(cleanText, onEndCallback);
+  }
+
+  function speakWithSpeechSynthesis(text, onEndCallback = null) {
+    if (!('speechSynthesis' in window)) {
+      if (onEndCallback) onEndCallback();
+      return;
+    }
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'en-GB';
-    utterance.rate = playbackSpeed;
+    utterance.rate = playbackSpeed || 1.0;
     utterance.pitch = 1.0;
 
-    if (selectedBritishVoice) {
-      utterance.voice = selectedBritishVoice;
+    const voice = (selectedBritishVoice && typeof selectedBritishVoice === 'object')
+      ? selectedBritishVoice
+      : getBestBritishVoice();
+
+    if (voice) {
+      utterance.voice = voice;
     }
 
     if (onEndCallback) {
@@ -1720,7 +1820,7 @@
     // Dismiss inspector when clicking outside
     document.addEventListener('click', (e) => {
       if (wordInspectorPopup && !wordInspectorPopup.classList.contains('hidden')) {
-        if (!wordInspectorPopup.contains(e.target) && !e.target.classList.contains('word-token')) {
+        if (!wordInspectorPopup.contains(e.target) && !e.target.closest('.word-token')) {
           closeWordInspector();
         }
       }

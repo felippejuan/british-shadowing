@@ -982,16 +982,21 @@ body {
 
 /* Word Inspector Card Popover */
 .word-inspector-card {
-  position: absolute;
-  z-index: 1000;
+  position: fixed;
+  z-index: 99999;
   background: #ffffff;
   border: 2px solid var(--gold-accent);
   border-radius: var(--radius-md);
   padding: 1.15rem 1.25rem;
-  width: 350px;
-  max-width: calc(100vw - 2rem);
-  box-shadow: 0 10px 28px rgba(14, 30, 56, 0.22);
+  width: 360px;
+  max-width: calc(100vw - 24px);
+  box-shadow: 0 16px 40px rgba(14, 30, 56, 0.32);
   animation: popIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+.word-inspector-card.hidden {
+  display: none !important;
 }
 
 @keyframes popIn {
