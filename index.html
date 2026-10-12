@@ -25,16 +25,16 @@
         <!-- Voice selector dropdown -->
         <div class="voice-picker-wrap">
           <label for="voiceSelect" class="sr-only">British Voice</label>
-          <span class="voice-badge">Voice:</span>
+          <span class="voice-badge">Voz:</span>
           <select id="voiceSelect" class="select-voice" aria-label="Select British Voice">
-            <option value="">Loading British voices...</option>
+            <option value="">Carregando vozes...</option>
           </select>
         </div>
         <!-- Global playback speed -->
         <div class="speed-toggle" role="group" aria-label="Playback speed">
-          <button class="speed-btn" data-speed="0.75" title="0.75x Slower for phonetics">0.75x</button>
-          <button class="speed-btn" data-speed="0.9" title="0.9x Transition pace">0.9x</button>
-          <button class="speed-btn active" data-speed="1.0" title="1.0x Natural speed">1.0x</button>
+          <button class="speed-btn" data-speed="0.75" title="0.75x Lento (fonética)">0.75x</button>
+          <button class="speed-btn" data-speed="0.9" title="0.9x Transição">0.9x</button>
+          <button class="speed-btn active" data-speed="1.0" title="1.0x Natural">1.0x</button>
         </div>
       </div>
     </div>
@@ -44,15 +44,15 @@
   <nav class="mode-navigation-bar">
     <div class="container mode-nav-inner">
       <button id="navTrailBtn" class="mode-tab-btn active">
-        <span>🗓️</span> 30-Day Immersion Trail
+        <span>🗓️</span> Trilha de 30 Dias
         <span class="badge-streak" id="trailStreakBadge">0/30</span>
       </button>
       <button id="navVaultBtn" class="mode-tab-btn">
-        <span>⭐️</span> Expression Vault & Revision
+        <span>⭐️</span> Caderno de Expressões
         <span class="badge-streak" id="vaultCountBadge">0</span>
       </button>
       <button id="navSoundboardBtn" class="mode-tab-btn">
-        <span>⚡</span> Quick Soundboard
+        <span>⚡</span> Soundboard Rápido
       </button>
     </div>
   </nav>
@@ -64,24 +64,23 @@
     <!-- Clean Trail Header -->
     <section class="trail-hero-card">
       <div class="trail-hero-content">
-        <div class="pill-tag">30-Day Guided Trail • ~2-Minute Daily Immersion</div>
-        <h2>Cultivate Natural Rhythm, Cadence & Composure.</h2>
+        <div class="pill-tag">🏛️ Imersão Diária • Modern RP British Cadence</div>
+        <h2>Cultive Ritmo Natural, Cadência e Compostura Britânica.</h2>
         <p class="trail-hero-desc">
-          Daily 10-15 minute workouts built around continuous 2-minute native speech narratives (~250 words) recorded with British neural voices (Ryan & Sonia).
-          Listen with steady breath, toggle Portuguese translations whenever needed, and practice focused shadowing blocks.
+          Treinos diários com narrativas de ~2 minutos em inglês britânico autêntico (Ryan & Sonia). Treine por trechos com fôlego sereno, ative a tradução alinhada e clique nas palavras para entender o sentido no contexto.
         </p>
       </div>
 
       <div class="trail-progress-panel">
         <div class="progress-title-row">
-          <span>Trail Progress:</span>
-          <strong id="trailPercentText">0% Completed</strong>
+          <span>Progresso da Trilha:</span>
+          <strong id="trailPercentText">0% Concluído</strong>
         </div>
         <div class="progress-bar-bg">
           <div id="trailProgressBar" class="progress-bar-fill"></div>
         </div>
         <div class="progress-sub-row">
-          <span id="trailDaysCompletedCount">0</span> of 30 days mastered
+          <span id="trailDaysCompletedCount">0</span> de 30 dias dominados
         </div>
       </div>
     </section>
@@ -91,8 +90,8 @@
       <!-- Left: 30-Day Calendar Sidebar -->
       <aside class="trail-sidebar" aria-label="30-Day Syllabus">
         <div class="sidebar-header">
-          <h3>The Syllabus</h3>
-          <span class="sidebar-sub">30 Immersion Sessions</span>
+          <h3>O Currículo</h3>
+          <span class="sidebar-sub">30 Sessões de Imersão</span>
         </div>
         <div id="trailDaysSidebarList" class="trail-days-accordion">
           <!-- Populated dynamically via app.js -->
@@ -108,13 +107,13 @@
             <span id="workoutVoiceBadge" class="badge-voice">🎙️ Speaker: Ryan (Oxford RP)</span>
           </div>
           <h2 id="workoutMainTitle" class="workout-title-text">The London Morning Ritual & Mindset</h2>
-          <div id="workoutFocusTag" class="workout-focus-tag">Accent Focus: Non-Rhotic R & Steady Cadence</div>
+          <div id="workoutFocusTag" class="workout-focus-tag">Foco Fonético: O R Não-Rótico & Cadência Serena</div>
         </div>
 
         <!-- Master Audio Player Bar -->
         <div class="master-player-dock">
           <div class="player-top-row">
-            <span class="player-status-label">🎧 Master Track (~2 min continuous speech)</span>
+            <span class="player-status-label">🎧 Faixa Mestra Oficial (~2 min de fala contínua)</span>
             <div class="player-speed-pills">
               <button class="player-speed-btn" data-speed="0.75">0.75x</button>
               <button class="player-speed-btn" data-speed="0.9">0.9x</button>
@@ -123,12 +122,12 @@
           </div>
 
           <div class="player-controls-row">
-            <button id="trailMasterPlayBtn" class="btn-play-large" title="Play / Pause Master Audio">▶</button>
+            <button id="trailMasterPlayBtn" class="btn-play-large" title="Reproduzir / Pausar Áudio Mestre">▶</button>
             <div class="player-scrub-wrap">
               <input type="range" id="trailMasterSlider" class="scrub-slider" min="0" max="100" value="0">
               <div class="time-readout" id="trailMasterTimeReadout">0:00 / 0:00</div>
             </div>
-            <button id="trailMasterLoopBtn" class="btn-icon-loop" title="Toggle Loop">🔁</button>
+            <button id="trailMasterLoopBtn" class="btn-icon-loop" title="Repetir Faixa Mestra">🔁</button>
           </div>
 
           <audio id="trailMasterAudioElem" preload="metadata"></audio>
@@ -137,16 +136,16 @@
         <!-- Workout Navigation Tabs (Clean & Professional) -->
         <div class="workout-internal-tabs" role="tablist">
           <button class="workout-tab-btn active" data-tab="tabTranscript">
-            <span>📖</span> Transcript & Translation
+            <span>📖</span> Treino & Script
           </button>
           <button class="workout-tab-btn" data-tab="tabExpressions">
-            <span>⭐️</span> Key Expressions (<span id="dayExprCount">5</span>)
+            <span>⭐️</span> Expressões-Chave (<span id="dayExprCount">5</span>)
           </button>
           <button class="workout-tab-btn" data-tab="tabDrills">
-            <span>🎯</span> Shadowing Blocks (3 Parts)
+            <span>🎯</span> Blocos de Fôlego
           </button>
           <button class="workout-tab-btn" data-tab="tabRecorder">
-            <span>🎙️</span> 2-Minute Recording Studio
+            <span>🎙️</span> Estúdio de Gravação
           </button>
         </div>
 
@@ -166,7 +165,9 @@
                 <button id="modeParagraphBtn" class="read-pill" title="Texto corrido em parágrafos">📄 Texto Corrido</button>
               </div>
             </div>
-            <span class="transcript-hint">💡 <strong>Treino por Trechos:</strong> Clique em <strong>▶ Ouvir</strong> para escutar o trecho curto, <strong>🔁 Loop</strong> para shadowing contínuo, ou clique em <u>qualquer palavra</u> (ex: <em>remarkably</em>, <em>grounding</em>) para abrir o Inspetor!</span>
+            <div class="toolbar-hint-pill">
+              <span>💡</span> <span>Clique em <strong>▶ Ouvir</strong> para escutar o trecho, ou em <u>qualquer palavra</u> para abrir o dicionário contextual.</span>
+            </div>
           </div>
 
           <div id="workoutFullScriptBox" class="full-script-box">

@@ -671,7 +671,23 @@
       activeChunkLoopInterval = null;
     }
     activeChunkLoopIndex = null;
-    document.querySelectorAll('.btn-chunk-loop.active').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.btn-chunk-loop.active').forEach(b => {
+      b.classList.remove('active');
+      const icon = b.querySelector('.btn-icon');
+      const label = b.querySelector('.btn-label');
+      if (icon) icon.textContent = '🔁';
+      if (label) label.textContent = 'Loop';
+    });
+    document.querySelectorAll('.chunk-card.is-looping, .chunk-card.is-playing').forEach(c => {
+      c.classList.remove('is-looping', 'is-playing');
+    });
+    document.querySelectorAll('.btn-chunk-play.active').forEach(b => {
+      b.classList.remove('active');
+      const icon = b.querySelector('.btn-icon');
+      const label = b.querySelector('.btn-label');
+      if (icon) icon.textContent = '▶';
+      if (label) label.textContent = 'Ouvir';
+    });
     stopBritishAudio();
   }
 
@@ -682,6 +698,13 @@
       stopChunkLoop();
       activeChunkLoopIndex = chunkIdx;
       btnEl.classList.add('active');
+      const card = btnEl.closest('.chunk-card');
+      if (card) card.classList.add('is-looping');
+      const icon = btnEl.querySelector('.btn-icon');
+      const label = btnEl.querySelector('.btn-label');
+      if (icon) icon.textContent = '⏹';
+      if (label) label.textContent = 'Parar';
+
       speakBritish(chunkText);
       const wordCount = chunkText.split(/\s+/).length;
       const intervalMs = Math.max(3400, wordCount * 450 + 2200);
@@ -752,18 +775,18 @@
                 <span class="chunk-badge">Trecho ${String(thisIdx).padStart(2, '0')}</span>
                 <div class="chunk-buttons">
                   <button class="chunk-action-btn btn-chunk-play" title="Ouvir este trecho com pronúncia britânica">
-                    <span>▶</span> <span>Ouvir</span>
+                    <span class="btn-icon">▶</span> <span class="btn-label">Ouvir</span>
                   </button>
                   <button class="chunk-action-btn btn-chunk-loop" title="Repetir em loop com pausa para shadowing">
-                    <span>🔁</span> <span>Loop</span>
+                    <span class="btn-icon">🔁</span> <span class="btn-label">Loop</span>
                   </button>
                   <button class="chunk-action-btn btn-chunk-studio" title="Gravar e comparar sua voz neste trecho">
-                    <span>🎙️</span> <span>Gravar</span>
+                    <span class="btn-icon">🎙️</span> <span class="btn-label">Gravar</span>
                   </button>
                 </div>
               </div>
               <p class="sentence-en">${enHtml}</p>
-              ${ptHtml ? `<p class="sentence-pt ${isTranslationVisible ? '' : 'hidden'}">${ptHtml}</p>` : ''}
+              ${ptHtml ? `<p class="sentence-pt ${isTranslationVisible ? '' : 'hidden'}"><span class="pt-flag">🇧🇷</span> ${ptHtml}</p>` : ''}
             `;
 
             // Action listeners
@@ -775,7 +798,21 @@
               btnPlay.addEventListener('click', (e) => {
                 e.stopPropagation();
                 stopChunkLoop();
-                speakBritish(tg.en);
+
+                // Highlight playing card
+                sCard.classList.add('is-playing');
+                btnPlay.classList.add('active');
+                const pIcon = btnPlay.querySelector('.btn-icon');
+                const pLabel = btnPlay.querySelector('.btn-label');
+                if (pIcon) pIcon.textContent = '⏸';
+                if (pLabel) pLabel.textContent = 'Tocando';
+
+                speakBritish(tg.en, () => {
+                  sCard.classList.remove('is-playing');
+                  btnPlay.classList.remove('active');
+                  if (pIcon) pIcon.textContent = '▶';
+                  if (pLabel) pLabel.textContent = 'Ouvir';
+                });
               });
             }
 
@@ -1261,14 +1298,18 @@
       const isSelected = currentTrailDay && currentTrailDay.day === item.day;
 
       const btn = document.createElement('button');
-      btn.className = `trail-day-item-btn ${isSelected ? 'active' : ''}`;
+      btn.className = `trail-day-item-btn ${isSelected ? 'active' : ''} ${isDone ? 'is-completed' : ''}`;
       btn.dataset.day = item.day;
+      const speakerName = item.voice && item.voice.includes('Sonia') ? 'Sonia (Londres RP)' : 'Ryan (Oxford RP)';
       btn.innerHTML = `
         <div class="trail-day-meta-box">
-          <span class="trail-day-num">D${String(item.day).padStart(2, '0')}</span>
-          <span class="trail-day-name">${escapeHtml(item.title)}</span>
+          <span class="trail-day-num">${String(item.day).padStart(2, '0')}</span>
+          <div class="trail-day-info">
+            <span class="trail-day-name">${escapeHtml(item.title)}</span>
+            <span class="trail-day-speaker">${speakerName}</span>
+          </div>
         </div>
-        <span>${isDone ? '✅' : '⚪'}</span>
+        <span class="trail-day-status-pill ${isDone ? 'done' : ''}">${isDone ? '✓' : '○'}</span>
       `;
 
       btn.addEventListener('click', () => {
