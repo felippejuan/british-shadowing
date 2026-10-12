@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The Posh Lab — High Society British Shadowing</title>
+  <title>The Posh Lab — Trilha de Imersão Britânica & Shadowing Studio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -17,7 +17,7 @@
         <span class="crest-icon">🇬🇧</span>
         <div>
           <h1 class="brand-title">The Posh Lab</h1>
-          <p class="brand-subtitle">Modern RP • British High Society Shadowing Studio</p>
+          <p class="brand-subtitle">Modern RP British Shadowing • Trilha de Imersão de 30 Dias</p>
         </div>
       </div>
       <div class="header-controls">
@@ -42,73 +42,202 @@
   <!-- Top Navigation: Mode Switcher -->
   <nav class="mode-navigation-bar">
     <div class="container mode-nav-inner">
-      <button id="navSoundboardBtn" class="mode-tab-btn active">
-        <span>⚡</span> Soundboard & Drills Rápidos
+      <button id="navTrailBtn" class="mode-tab-btn active">
+        <span>🗓️</span> Trilha dos 30 Dias (Imersão de ~2 Min Diários)
+        <span class="badge-streak" id="trailStreakBadge">0/30</span>
       </button>
-      <button id="navChallengeBtn" class="mode-tab-btn">
-        <span>🗓️</span> Desafio 30 Dias (Treinos de 1 Minuto)
-        <span class="badge-streak" id="streakBadge">0/30</span>
+      <button id="navSoundboardBtn" class="mode-tab-btn">
+        <span>⚡</span> Soundboard de Bolso (Drills Rápidos)
       </button>
     </div>
   </nav>
 
   <!-- =======================================================================
-       MODE 1: SOUNDBOARD & FAST DRILLS VIEW
+       MAIN VIEW 1: 30-DAY IMMERSION TRAIL (DEFAULT VIEW)
        ======================================================================= -->
-  <div id="soundboardView">
-    <!-- Hero & 4 Golden Rules -->
-    <section class="hero-section container">
-      <div class="hero-card">
-        <div class="hero-content">
-          <div class="pill-tag">Pronúncia Britânica Sem Frescura • Dia a Dia Refinado</div>
-          <h2>Treine a melodia, o ritmo e o estalo nítido do inglês britânico contemporâneo.</h2>
-          <p class="hero-desc">
-            O método de <strong>Shadowing</strong> com os macetes do <em>Contemporary Received Pronunciation (Modern RP)</em>.
-            Clique para ouvir, repita de imediato com o microfone e compare sua voz lado a lado com o modelo nativo.
-          </p>
-        </div>
+  <main id="trailView" class="container main-trail-view">
+    <!-- Hero Progress Banner -->
+    <section class="trail-hero-card">
+      <div class="trail-hero-content">
+        <div class="pill-tag">Trilha Guiada de 30 Dias • Sessões de ~2 Minutos Reais de Fala</div>
+        <h2>Domine o Ritmo, a Melodia e a Compostura do Inglês Britânico Contemporâneo.</h2>
+        <p class="trail-hero-desc">
+          Chega de frases soltas sem contexto. Cada dia desta trilha é um <strong>treino profundo de 10 a 15 minutos</strong>:
+          um áudio narrativo contínuo de <strong>~2 minutos</strong> (~250 palavras) gravado com vozes neurais britânicas de alta fidelidade (Ryan & Sonia),
+          com texto completo, glossário de expressões idiomáticas e divisão em <strong>3 blocos manejáveis</strong> para você praticar shadowing com o microfone até internalizar na memória muscular.
+        </p>
+      </div>
 
-        <div class="rules-summary">
-          <h3 class="rules-title">As 4 Regras de Ouro da Dicção High Society:</h3>
-          <div class="rules-grid">
-            <div class="rule-chip">
-              <span class="rule-num">1</span>
-              <div>
-                <strong>R Não-Rótico (Sem 'R' caipira):</strong>
-                <p>Nunca enrole a língua no R após vogal (<em>car, water, rather</em>). O R vira um som neutro "uh" ou apenas alonga a vogal.</p>
-              </div>
-            </div>
-            <div class="rule-chip">
-              <span class="rule-num">2</span>
-              <div>
-                <strong>O 'T' Nítido e Aspirado:</strong>
-                <p>Nada do "D" americano (evite "wader" para <em>water</em>). O T britânico fino bate atrás dos dentes com um estalo seco e limpo.</p>
-              </div>
-            </div>
-            <div class="rule-chip">
-              <span class="rule-num">3</span>
-              <div>
-                <strong>O 'Broad A' de Garganta (/ɑː/):</strong>
-                <p>Em <em>bath, glass, can't, after</em>, abra a boca verticalmente e produza um 'A' longo e profundo, nunca o 'É' nasal americano.</p>
-              </div>
-            </div>
-            <div class="rule-chip">
-              <span class="rule-num">4</span>
-              <div>
-                <strong>Ditongo /əʊ/ ("eh-oo" elegante):</strong>
-                <p>Em <em>go, no, home, don't</em>, comece com a boca relaxada e deslize suavemente para o "u". Soa como "nê-oo", nunca "nô".</p>
-              </div>
-            </div>
-          </div>
+      <div class="trail-progress-panel">
+        <div class="progress-title-row">
+          <span>Seu Avanço na Trilha:</span>
+          <strong id="trailPercentText">0% Concluído</strong>
+        </div>
+        <div class="progress-bar-bg">
+          <div id="trailProgressBar" class="progress-bar-fill"></div>
+        </div>
+        <div class="progress-sub-row">
+          <span id="trailDaysCompletedCount">0</span> de 30 dias completados
         </div>
       </div>
     </section>
 
+    <!-- Trail Split Layout -->
+    <div class="trail-split-layout">
+      <!-- Left: 30-Day Calendar Sidebar -->
+      <aside class="trail-sidebar" aria-label="Navegação dos 30 Dias da Trilha">
+        <div class="sidebar-header">
+          <h3>Mapa da Trilha</h3>
+          <span class="sidebar-sub">30 Sessões Imersivas</span>
+        </div>
+        <div id="trailDaysSidebarList" class="trail-days-accordion">
+          <!-- Populated dynamically via app.js -->
+        </div>
+      </aside>
+
+      <!-- Right: Active Day Workout Center -->
+      <section class="trail-workout-center" aria-label="Área de Treino da Lição do Dia">
+        <!-- Day Header -->
+        <div class="workout-main-header">
+          <div class="workout-meta-top">
+            <span id="workoutDayBadge" class="badge-day">Dia 1 de 30</span>
+            <span id="workoutVoiceBadge" class="badge-voice">🎙️ Narrador: Ryan (Oxford RP)</span>
+          </div>
+          <h2 id="workoutMainTitle" class="workout-title-text">The London Morning Ritual & Mindset</h2>
+          <div id="workoutFocusTag" class="workout-focus-tag">Foco Fonético: O 'R' Não-Rótico (Non-Rhoticity) & Cadência Serena</div>
+        </div>
+
+        <!-- Passo 1: O Áudio Master de 2 Minutos -->
+        <div class="step-card master-audio-step">
+          <div class="step-header">
+            <span class="step-number">Passo 1</span>
+            <div>
+              <h3 class="step-title">Escuta Imersiva — O Áudio Master de ~2 Minutos</h3>
+              <p class="step-desc">Ouça o áudio inteiro pelo menos uma vez de olhos fechados. Sinta a respiração, as pausas e a melodia antes de tentar falar.</p>
+            </div>
+          </div>
+
+          <!-- Custom Audio Player Bar -->
+          <div class="custom-audio-player">
+            <div class="player-top-row">
+              <span class="player-status-label">🎧 Áudio Oficial da Lição (~2 min contínuos)</span>
+              <div class="player-speed-pills">
+                <button class="player-speed-btn" data-speed="0.75" title="0.75x mais lento">0.75x</button>
+                <button class="player-speed-btn" data-speed="0.9" title="0.9x transição">0.9x</button>
+                <button class="player-speed-btn active" data-speed="1.0" title="1.0x velocidade nativa">1.0x</button>
+              </div>
+            </div>
+
+            <div class="player-controls-row">
+              <button id="trailMasterPlayBtn" class="btn-play-large" title="Tocar / Pausar áudio master">▶</button>
+              <div class="player-scrub-wrap">
+                <input type="range" id="trailMasterSlider" class="scrub-slider" min="0" max="100" value="0">
+                <div class="time-readout" id="trailMasterTimeReadout">0:00 / 0:00</div>
+              </div>
+              <button id="trailMasterLoopBtn" class="btn-icon-loop" title="Repetir em loop contínuo">🔁</button>
+            </div>
+
+            <audio id="trailMasterAudioElem" preload="metadata"></audio>
+          </div>
+        </div>
+
+        <!-- Passo 2: O Texto Integral da Lição -->
+        <div class="step-card full-text-step">
+          <div class="step-header">
+            <span class="step-number">Passo 2</span>
+            <div>
+              <h3 class="step-title">Texto Integral da Narrativa</h3>
+              <p class="step-desc">Leia o texto acompanhando a cadência. Observe como as frases respiram sem atropelos.</p>
+            </div>
+          </div>
+          <div id="workoutFullScriptBox" class="full-script-box">
+            <!-- Full paragraphs inserted here -->
+          </div>
+        </div>
+
+        <!-- Passo 3: Glossário de Expressões & Cultura Britânica -->
+        <div class="step-card glossary-step">
+          <div class="step-header">
+            <span class="step-number">Passo 3</span>
+            <div>
+              <h3 class="step-title">Glossário & Expressões do Dia</h3>
+              <p class="step-desc">Vocabulário autêntico do cotidiano de alta sociedade para você soar natural sem afetação.</p>
+            </div>
+          </div>
+          <div id="workoutGlossaryGrid" class="glossary-chips-grid">
+            <!-- Glossary items inserted here -->
+          </div>
+        </div>
+
+        <!-- Passo 4: Shadowing em 3 Blocos (Parágrafo por Parágrafo) -->
+        <div class="step-card blocks-step">
+          <div class="step-header">
+            <span class="step-number">Passo 4</span>
+            <div>
+              <h3 class="step-title">Treino de Shadowing em 3 Blocos (~40s cada)</h3>
+              <p class="step-desc">Não tente engolir os 2 minutos de uma vez. Pratique cada parágrafo isoladamente com o microfone até a língua soltar.</p>
+            </div>
+          </div>
+          <div id="workoutParagraphsList" class="workout-blocks-list">
+            <!-- 3 Paragraph blocks inserted here -->
+          </div>
+        </div>
+
+        <!-- Passo 5: O Desafio da Gravação Master dos 2 Minutos -->
+        <div class="step-card master-record-step">
+          <div class="step-header">
+            <span class="step-number">Passo 5</span>
+            <div>
+              <h3 class="step-title">O Desafio dos 2 Minutos — Gravação Contínua</h3>
+              <p class="step-desc">Grave sua voz lendo o texto completo do início ao fim e escute a sua gravação para avaliar seu fôlego e postura.</p>
+            </div>
+          </div>
+          <div class="master-record-controls">
+            <button id="trailRecordMasterBtn" class="btn-record-master">
+              <span class="icon">🎙️</span>
+              <span id="trailRecordMasterLabel">Gravar Minha Sessão de 2 Minutos</span>
+            </button>
+            <button id="trailPlayUserRecordingBtn" class="btn-secondary-master" disabled>
+              <span class="icon">🎧</span>
+              <span>Ouvir Minha Gravação</span>
+            </button>
+            <button id="trailDualCompareBtn" class="btn-accent-master" disabled title="Toca o modelo nativo e a sua voz sobrepostos para comparar o ritmo">
+              <span class="icon">⚡</span>
+              <span>Comparar Ritmo (Dual)</span>
+            </button>
+          </div>
+          <div class="master-record-waveform">
+            <canvas id="trailVisualizerCanvas" height="45"></canvas>
+          </div>
+        </div>
+
+        <!-- Conclusão da Lição -->
+        <div class="workout-completion-footer">
+          <button id="btnCompleteDay" class="btn-finish-day">
+            <span id="finishDayIcon">⚪</span>
+            <span id="finishDayLabel">Marcar Dia como Concluído & Salvar Progresso</span>
+          </button>
+          <p class="footer-save-note">Seu progresso fica salvo automaticamente neste navegador.</p>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- =======================================================================
+       SECONDARY VIEW 2: SOUNDBOARD DE BOLSO (DRILLS RÁPIDOS)
+       ======================================================================= -->
+  <section id="soundboardView" class="container soundboard-section hidden">
+    <div class="soundboard-hero-card">
+      <div class="pill-tag">Biblioteca de Bolso • 1 Toque</div>
+      <h2>Soundboard de Frases & Palavras Críticas</h2>
+      <p class="hero-desc">Para momentos de aquecimento rápido ou treino pontual de palavras clássicas (Water, Schedule, Comfortable, Garage, Rather, Spot on).</p>
+    </div>
+
     <!-- Floating Shadowing Studio Dock -->
-    <aside id="shadowingStudio" class="studio-dock container hidden" aria-label="Laboratório de Gravação e Comparação">
+    <aside id="shadowingStudio" class="studio-dock hidden" aria-label="Laboratório de Gravação e Comparação">
       <div class="studio-dock-card">
         <div class="studio-header">
-          <div class="studio-badge">Estúdio Ativo de Shadowing</div>
+          <div class="studio-badge">Estúdio de Pronúncia</div>
           <button id="closeStudioBtn" class="btn-icon-close" title="Fechar estúdio">✕</button>
         </div>
 
@@ -119,7 +248,7 @@
               <span id="studioIpa" class="badge-ipa">/ˈrɑːðə ˈbrɪljənt ˈæktʃuəli/</span>
               <span id="studioCheat" class="badge-cheat">Mapeamento: "rá-dher brí-liant, ék-tchu-a-li"</span>
             </div>
-            <p id="studioTip" class="studio-tip-text">Dica: corte o R final de 'rather'. Enfatize o primeiro 'bril-' com elegância e o 'actually' flui com ritmo descendente.</p>
+            <p id="studioTip" class="studio-tip-text">Dica: corte o R final de 'rather'. Enfatize o primeiro 'bril-' com elegância.</p>
           </div>
 
           <div class="studio-controls-row">
@@ -135,7 +264,7 @@
               <span class="icon">🎧</span>
               <span>Minha Gravação</span>
             </button>
-            <button id="studioPlayDualBtn" class="btn-accent studio-action-btn" disabled title="Toca o áudio nativo e a sua voz sobrepostos para comparar o ritmo e a melodia">
+            <button id="studioPlayDualBtn" class="btn-accent studio-action-btn" disabled>
               <span class="icon">⚡</span>
               <span>Comparar Ritmo (Dual)</span>
             </button>
@@ -159,137 +288,34 @@
       </div>
     </aside>
 
-    <!-- Toolbar, Filters & Soundboard Grid -->
-    <main class="main-content container">
-      <div class="toolbar-section">
-        <div class="search-wrap">
-          <span class="search-icon">🔍</span>
-          <input type="text" id="searchInput" placeholder="Buscar frase, palavra, fonema ou dica..." autocomplete="off">
-          <button id="clearSearchBtn" class="clear-search-btn hidden">✕</button>
-        </div>
-
-        <nav class="categories-tabs" aria-label="Categorias de frases">
-          <button class="cat-pill active" data-cat="all">Todas as Frases (<span id="countAll">0</span>)</button>
-          <button class="cat-pill" data-cat="politeness">Polidez & Diplomacia</button>
-          <button class="cat-pill" data-cat="social">Social & Conversa Casual</button>
-          <button class="cat-pill" data-cat="debate">Reunião & Assertividade</button>
-          <button class="cat-pill" data-cat="drills">Palavras Críticas (Drills)</button>
-          <button class="cat-pill" data-cat="custom">Minhas Frases</button>
-        </nav>
+    <div class="toolbar-section">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Buscar frase, palavra, fonema ou dica..." autocomplete="off">
+        <button id="clearSearchBtn" class="clear-search-btn hidden">✕</button>
       </div>
 
-      <div class="grid-header">
-        <div class="grid-stats">
-          Exibindo <span id="displayedCount">0</span> frases de treino rápido
-        </div>
-        <button id="openAddCustomModalBtn" class="btn-small-outline">+ Adicionar Frase Própria</button>
-      </div>
-
-      <section id="phrasesGrid" class="soundboard-grid" aria-label="Grade de frases para shadowing">
-        <!-- Cards populated via app.js -->
-      </section>
-    </main>
-  </div>
-
-  <!-- =======================================================================
-       MODE 2: 30-DAY CHALLENGE VIEW (1-MINUTE AUDIO WORKOUTS)
-       ======================================================================= -->
-  <div id="challengeView" class="challenge-section container hidden">
-    <!-- Hero / Progress Bar -->
-    <div class="challenge-hero">
-      <div class="challenge-hero-top">
-        <div>
-          <span class="pill-tag">Programa Intensivo de 30 Dias</span>
-          <h2 class="challenge-hero-title">O Desafio dos 30 Dias de Shadowing Britânico</h2>
-          <p class="hero-desc">Um texto corrido de ~1 minuto por dia com áudio gravado em alta definição neural (Ryan & Sonia), transcrição frase a frase e macetes para destravar a sua dicção.</p>
-        </div>
-        <div class="challenge-progress-box">
-          <div class="progress-label-row">
-            <span>Progresso da Jornada:</span>
-            <span id="challengePercent">0%</span>
-          </div>
-          <div class="progress-bar-bg">
-            <div id="challengeProgressBar" class="progress-bar-fill"></div>
-          </div>
-          <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; text-align: right;">
-            <span id="challengeCompletedCount">0</span> de 30 dias concluídos
-          </div>
-        </div>
-      </div>
+      <nav class="categories-tabs" aria-label="Categorias de frases">
+        <button class="cat-pill active" data-cat="all">Todas (<span id="countAll">0</span>)</button>
+        <button class="cat-pill" data-cat="politeness">Polidez & Diplomacia</button>
+        <button class="cat-pill" data-cat="social">Social & Conversa</button>
+        <button class="cat-pill" data-cat="debate">Reunião & Assertividade</button>
+        <button class="cat-pill" data-cat="drills">Palavras Críticas (Drills)</button>
+        <button class="cat-pill" data-cat="custom">Minhas Frases</button>
+      </nav>
     </div>
 
-    <!-- Main Challenge Split Layout -->
-    <div class="challenge-grid-layout">
-      <!-- Left: Days Sidebar -->
-      <aside class="challenge-sidebar" aria-label="Lista de Dias do Desafio">
-        <h3 class="sidebar-title">Calendário de Treinos</h3>
-        <div id="challengeDaysList">
-          <!-- Populated via app.js -->
-        </div>
-      </aside>
-
-      <!-- Right: Active Day Workout Panel -->
-      <section class="challenge-workout-panel" aria-label="Painel de Treino do Dia">
-        <div class="workout-header">
-          <span id="workoutDayTag" class="workout-day-tag">Dia 1 de 30</span>
-          <h2 id="workoutDayTitle" class="workout-day-title">Morning Routine & The Silent 'R'</h2>
-          <div id="workoutFocusBadge" class="workout-focus-badge">Foco: O 'R' Não-Rótico (Non-Rhoticity)</div>
-        </div>
-
-        <!-- Master 1-Minute Audio Player -->
-        <div class="master-audio-player-card">
-          <div class="audio-player-meta">
-            <span class="audio-track-label">🎧 Áudio Master Oficial (~1 min de fala nativa contínua)</span>
-            <div class="audio-speed-chips">
-              <button class="audio-speed-chip" data-speed="0.75">0.75x</button>
-              <button class="audio-speed-chip" data-speed="0.9">0.9x</button>
-              <button class="audio-speed-chip active" data-speed="1.0">1.0x</button>
-            </div>
-          </div>
-
-          <div class="audio-controls-wrap">
-            <button id="masterPlayBtn" class="btn-master-play" title="Tocar / Pausar áudio de 1 minuto">▶</button>
-            <div class="audio-slider-wrap">
-              <input type="range" id="masterSeekSlider" class="audio-seek-slider" min="0" max="100" value="0">
-              <span id="masterTimeDisplay" class="audio-time-display">0:00 / 0:00</span>
-            </div>
-          </div>
-
-          <!-- Hidden Native Audio Element -->
-          <audio id="masterAudioElem" preload="metadata"></audio>
-        </div>
-
-        <!-- Master Script Display -->
-        <div class="workout-script-box">
-          <div class="script-box-label">Texto Completo da Lição de 1 Minuto:</div>
-          <p id="workoutScriptFull" class="script-full-text"></p>
-        </div>
-
-        <!-- Brazilian Advice Card -->
-        <div class="brazilian-advice-card">
-          <h4 class="brazilian-advice-title">💡 Macete de Ouro para Brasileiros:</h4>
-          <p id="workoutBrazilianTip" class="brazilian-advice-text"></p>
-        </div>
-
-        <!-- Sentence Breakdown List -->
-        <h3 class="breakdown-title">Treino Frase a Frase (Shadowing Minucioso):</h3>
-        <div id="workoutSentenceList" class="sentence-breakdown-list">
-          <!-- Populated via app.js -->
-        </div>
-
-        <!-- Workout Footer Action -->
-        <div class="workout-footer-row">
-          <button id="toggleCompleteDayBtn" class="btn-toggle-complete">
-            <span id="completeDayIcon">✓</span>
-            <span id="completeDayLabel">Marcar Dia como Concluído</span>
-          </button>
-          <div style="font-size: 0.82rem; color: var(--text-muted);">
-            Seu progresso fica salvo automaticamente neste navegador.
-          </div>
-        </div>
-      </section>
+    <div class="grid-header">
+      <div class="grid-stats">
+        Exibindo <span id="displayedCount">0</span> frases de treino rápido
+      </div>
+      <button id="openAddCustomModalBtn" class="btn-small-outline">+ Adicionar Frase Própria</button>
     </div>
-  </div>
+
+    <section id="phrasesGrid" class="soundboard-grid" aria-label="Grade de frases para shadowing">
+      <!-- Cards populated via app.js -->
+    </section>
+  </section>
 
   <!-- Modal: Add Custom Phrase -->
   <div id="addModal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
@@ -327,7 +353,7 @@
   <footer class="site-footer container">
     <div class="footer-inner">
       <p><strong>The Posh Lab</strong> — Feito para prática pessoal de shadowing e pronúncia britânica refinada.</p>
-      <p class="footer-note">30 Dias de Treino com Áudios de 1 Minuto • 100% estático • Hospedado no GitHub Pages</p>
+      <p class="footer-note">30 Sessões de Imersão (~2 min de fala contínua cada) • 100% estático • Hospedado no GitHub Pages</p>
     </div>
   </footer>
 
