@@ -2,8 +2,10 @@
  * The Posh Lab — British Immersion & Shadowing Studio Engine
  * Features:
  * 1. 30-Day Immersion Trail (Primary View): ~2-minute master audios, full scripts,
- *    idiomatic glossaries, 3-block paragraph drills, 2-minute master recording.
- * 2. Soundboard de Bolso (Secondary View): 34 quick cards, soundboard playback,
+ *    multi-paragraph breakdowns, Portuguese translation toggle, 2-minute master recording.
+ * 2. Expression Vault & Revision (New Feature): 130+ pre-mapped British expressions,
+ *    starring to personal notebook, Spaced Repetition flashcards, active recall.
+ * 3. Quick Soundboard (Secondary View): 34 quick cards, soundboard playback,
  *    and instant phonetic drills.
  */
 
@@ -11,19 +13,33 @@
   'use strict';
 
   // =========================================================================
-  // 1. Storage Keys & State
+  // 1. Storage Keys & Global State
   // =========================================================================
-  const STORAGE_CUSTOM_KEY = 'the_posh_lab_custom_phrases_v1';
   const STORAGE_COMPLETED_KEY = 'the_posh_lab_trail_completed_v1';
+  const STORAGE_VAULT_STARRED_KEY = 'the_posh_lab_vault_starred_v1';
+  const STORAGE_VAULT_MASTERED_KEY = 'the_posh_lab_vault_mastered_v1';
+  const STORAGE_CUSTOM_EXPR_KEY = 'the_posh_lab_custom_expressions_v1';
+  const STORAGE_CUSTOM_PHRASES_KEY = 'the_posh_lab_custom_phrases_v1';
 
-  let currentMode = 'trail'; // 'trail' (default) or 'soundboard'
+  let currentMode = 'trail'; // 'trail', 'vault', or 'soundboard'
   let completedDays = new Set();
   let currentTrailDay = null;
   let playbackSpeed = 1.0;
   let selectedBritishVoice = null;
   let isMasterAudioLooping = false;
+  let isTranslationVisible = false;
 
-  // Soundboard state
+  // Expression Vault State
+  let vaultStarred = new Set();
+  let vaultMastered = new Set();
+  let customExpressions = [];
+  let vaultFilter = 'all';
+  let vaultSearchQuery = '';
+  let vaultSubMode = 'list'; // 'list' or 'cards'
+  let flashcardsDeck = [];
+  let currentFcIndex = 0;
+
+  // Soundboard State
   let allSoundboardPhrases = [];
   let currentCategory = 'all';
   let searchQuery = '';
@@ -58,10 +74,13 @@
   // =========================================================================
   // Mode Nav
   const navTrailBtn = document.getElementById('navTrailBtn');
+  const navVaultBtn = document.getElementById('navVaultBtn');
   const navSoundboardBtn = document.getElementById('navSoundboardBtn');
   const trailView = document.getElementById('trailView');
+  const vaultView = document.getElementById('vaultView');
   const soundboardView = document.getElementById('soundboardView');
   const trailStreakBadge = document.getElementById('trailStreakBadge');
+  const vaultCountBadge = document.getElementById('vaultCountBadge');
 
   // Global Voice & Speed Controls
   const voiceSelect = document.getElementById('voiceSelect');
@@ -87,6 +106,12 @@
   const trailMasterAudioElem = document.getElementById('trailMasterAudioElem');
   const playerSpeedBtns = document.querySelectorAll('.player-speed-btn');
 
+  // Workout Internal Tabs & Panes
+  const workoutTabBtns = document.querySelectorAll('.workout-tab-btn');
+  const workoutTabPanes = document.querySelectorAll('.workout-tab-pane');
+  const dayExprCount = document.getElementById('dayExprCount');
+  const toggleTranslationCheck = document.getElementById('toggleTranslationCheck');
+
   // Steps & Content
   const workoutFullScriptBox = document.getElementById('workoutFullScriptBox');
   const workoutGlossaryGrid = document.getElementById('workoutGlossaryGrid');
@@ -103,6 +128,41 @@
   const btnCompleteDay = document.getElementById('btnCompleteDay');
   const finishDayIcon = document.getElementById('finishDayIcon');
   const finishDayLabel = document.getElementById('finishDayLabel');
+
+  // Vault View Elements
+  const statTotalMapped = document.getElementById('statTotalMapped');
+  const statSavedReview = document.getElementById('statSavedReview');
+  const statMastered = document.getElementById('statMastered');
+  const vaultTabListBtn = document.getElementById('vaultTabListBtn');
+  const vaultTabCardsBtn = document.getElementById('vaultTabCardsBtn');
+  const vaultModeList = document.getElementById('vaultModeList');
+  const vaultModeCards = document.getElementById('vaultModeCards');
+  const openAddExpressionBtn = document.getElementById('openAddExpressionBtn');
+  const addExpressionModal = document.getElementById('addExpressionModal');
+  const closeExprModalBtn = document.getElementById('closeExprModalBtn');
+  const cancelExprModalBtn = document.getElementById('cancelExprModalBtn');
+  const addExpressionForm = document.getElementById('addExpressionForm');
+  const customTerm = document.getElementById('customTerm');
+  const customMeaning = document.getElementById('customMeaning');
+  const customContext = document.getElementById('customContext');
+  const vaultSearchInput = document.getElementById('vaultSearchInput');
+  const vPills = document.querySelectorAll('.v-pill');
+  const vCountAll = document.getElementById('vCountAll');
+  const vCountStarred = document.getElementById('vCountStarred');
+  const vCountMastered = document.getElementById('vCountMastered');
+  const vaultExpressionsGrid = document.getElementById('vaultExpressionsGrid');
+
+  // Flashcards Elements
+  const flashcardElement = document.getElementById('flashcardElement');
+  const flashcardCounter = document.getElementById('flashcardCounter');
+  const fcDayTag = document.getElementById('fcDayTag');
+  const fcTerm = document.getElementById('fcTerm');
+  const fcAudioBtn = document.getElementById('fcAudioBtn');
+  const fcMeaning = document.getElementById('fcMeaning');
+  const fcContext = document.getElementById('fcContext');
+  const fcFlipBtn = document.getElementById('fcFlipBtn');
+  const fcRepeatBtn = document.getElementById('fcRepeatBtn');
+  const fcMasterBtn = document.getElementById('fcMasterBtn');
 
   // Soundboard Elements
   const searchInput = document.getElementById('searchInput');
@@ -129,18 +189,12 @@
   const sttTranscriptText = document.getElementById('sttTranscriptText');
   const studioVisualizerCanvas = document.getElementById('studioVisualizerCanvas');
 
-  // Custom Phrase Modal
-  const addModal = document.getElementById('addModal');
-  const openAddCustomModalBtn = document.getElementById('openAddCustomModalBtn');
-  const closeModalBtn = document.getElementById('closeModalBtn');
-  const cancelModalBtn = document.getElementById('cancelModalBtn');
-  const addCustomForm = document.getElementById('addCustomForm');
-
   // =========================================================================
   // 3. Initialization
   // =========================================================================
   function init() {
     loadCompletedDays();
+    loadVaultData();
     initVoices();
     initSpeechRecognition();
     setupCanvases();
@@ -163,35 +217,314 @@
     const count = completedDays.size;
     const pct = Math.round((count / total) * 100);
 
-    trailStreakBadge.textContent = `${count}/${total}`;
-    trailDaysCompletedCount.textContent = count;
-    trailPercentText.textContent = `${pct}% Concluído`;
-    trailProgressBar.style.width = `${pct}%`;
+    if (trailStreakBadge) trailStreakBadge.textContent = `${count}/${total}`;
+    if (trailDaysCompletedCount) trailDaysCompletedCount.textContent = count;
+    if (trailPercentText) trailPercentText.textContent = `${pct}% Concluído`;
+    if (trailProgressBar) trailProgressBar.style.width = `${pct}%`;
   }
 
   // =========================================================================
-  // 4. Mode Switcher (Trail vs Soundboard)
+  // 4. Expression Vault Data & Methods
+  // =========================================================================
+  function loadVaultData() {
+    try {
+      const savedStarred = localStorage.getItem(STORAGE_VAULT_STARRED_KEY);
+      if (savedStarred) {
+        vaultStarred = new Set(JSON.parse(savedStarred));
+      } else {
+        // First-time friendly seed: star 8 classic expressions from Week 1
+        vaultStarred = new Set([
+          'Brisk stroll',
+          'In earnest',
+          'Buffer zone',
+          'Gravitas',
+          'Deliberate cadence',
+          'Rather brilliant',
+          'Spot on',
+          'Understated'
+        ]);
+        saveVaultData();
+      }
+
+      const savedMastered = localStorage.getItem(STORAGE_VAULT_MASTERED_KEY);
+      if (savedMastered) vaultMastered = new Set(JSON.parse(savedMastered));
+
+      const savedCustom = localStorage.getItem(STORAGE_CUSTOM_EXPR_KEY);
+      if (savedCustom) customExpressions = JSON.parse(savedCustom);
+    } catch (e) {
+      console.error('Error loading vault data:', e);
+    }
+
+    updateVaultBadge();
+    updateVaultStats();
+  }
+
+  function saveVaultData() {
+    try {
+      localStorage.setItem(STORAGE_VAULT_STARRED_KEY, JSON.stringify([...vaultStarred]));
+      localStorage.setItem(STORAGE_VAULT_MASTERED_KEY, JSON.stringify([...vaultMastered]));
+      localStorage.setItem(STORAGE_CUSTOM_EXPR_KEY, JSON.stringify(customExpressions));
+    } catch (e) {
+      console.error('Error saving vault data:', e);
+    }
+  }
+
+  function getAllExpressions() {
+    const base = window.MASTER_LEXICON || [];
+    return [...base, ...customExpressions];
+  }
+
+  function updateVaultBadge() {
+    if (vaultCountBadge) {
+      vaultCountBadge.textContent = vaultStarred.size;
+    }
+  }
+
+  function updateVaultStats() {
+    const all = getAllExpressions();
+    const totalCount = all.length;
+    const starredCount = vaultStarred.size;
+    const masteredCount = vaultMastered.size;
+
+    if (statTotalMapped) statTotalMapped.textContent = totalCount;
+    if (statSavedReview) statSavedReview.textContent = starredCount;
+    if (statMastered) statMastered.textContent = masteredCount;
+
+    if (vCountAll) vCountAll.textContent = totalCount;
+    if (vCountStarred) vCountStarred.textContent = starredCount;
+    if (vCountMastered) vCountMastered.textContent = masteredCount;
+  }
+
+  function toggleStarExpression(term) {
+    if (!term) return;
+    if (vaultStarred.has(term)) {
+      vaultStarred.delete(term);
+    } else {
+      vaultStarred.add(term);
+    }
+    saveVaultData();
+    updateVaultBadge();
+    updateVaultStats();
+
+    // Sync button states on screen
+    document.querySelectorAll(`[data-star-term="${escapeHtmlAttr(term)}"]`).forEach(btn => {
+      const isStarred = vaultStarred.has(term);
+      btn.classList.toggle('active', isStarred);
+      btn.classList.toggle('starred', isStarred);
+    });
+
+    if (currentMode === 'vault' && vaultSubMode === 'list') {
+      renderVaultList();
+    }
+  }
+
+  function toggleMasterExpression(term) {
+    if (!term) return;
+    if (vaultMastered.has(term)) {
+      vaultMastered.delete(term);
+    } else {
+      vaultMastered.add(term);
+    }
+    saveVaultData();
+    updateVaultStats();
+
+    if (currentMode === 'vault' && vaultSubMode === 'list') {
+      renderVaultList();
+    }
+  }
+
+  function renderVaultList() {
+    if (!vaultExpressionsGrid) return;
+    const all = getAllExpressions();
+    const query = vaultSearchQuery.toLowerCase();
+
+    const filtered = all.filter(item => {
+      // Filter tab
+      if (vaultFilter === 'starred' && !vaultStarred.has(item.term)) return false;
+      if (vaultFilter === 'mastered' && !vaultMastered.has(item.term)) return false;
+      if (vaultFilter === 'w1' && (item.day < 1 || item.day > 7)) return false;
+      if (vaultFilter === 'w2' && (item.day < 8 || item.day > 14)) return false;
+      if (vaultFilter === 'w3' && (item.day < 15 || item.day > 21)) return false;
+      if (vaultFilter === 'w4' && item.day < 22) return false;
+
+      // Search query
+      if (query) {
+        const tMatch = (item.term || '').toLowerCase().includes(query);
+        const mMatch = (item.meaning || '').toLowerCase().includes(query);
+        const eMatch = (item.example || '').toLowerCase().includes(query);
+        if (!tMatch && !mMatch && !eMatch) return false;
+      }
+
+      return true;
+    });
+
+    vaultExpressionsGrid.innerHTML = '';
+
+    if (filtered.length === 0) {
+      vaultExpressionsGrid.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 3rem 1rem; background: #ffffff; border: 1px dashed var(--border-card); border-radius: var(--radius-md);">
+          <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">⭐️</div>
+          <h4 style="font-family: var(--font-serif); font-size: 1.4rem; color: var(--navy-primary); margin-bottom: 0.35rem;">Nenhuma expressão encontrada</h4>
+          <p style="color: var(--text-secondary); font-size: 0.9rem; max-width: 460px; margin: 0 auto 1.25rem;">
+            ${vaultFilter === 'starred' ? 'Você ainda não favoritou expressões nesta categoria. Clique na estrela ⭐️ nas lições diárias para salvar.' : 'Tente ajustar sua busca ou selecionar outro filtro.'}
+          </p>
+        </div>
+      `;
+      return;
+    }
+
+    filtered.forEach(item => {
+      const isStarred = vaultStarred.has(item.term);
+      const isMastered = vaultMastered.has(item.term);
+
+      const card = document.createElement('div');
+      card.className = `vault-card ${isMastered ? 'is-mastered' : ''}`;
+
+      const dayDisplay = typeof item.day === 'number' ? `Day ${String(item.day).padStart(2, '0')}` : (item.day || 'Custom');
+
+      card.innerHTML = `
+        <div>
+          <div class="vault-card-header">
+            <span class="vault-day-badge">${dayDisplay} • ${escapeHtml(item.lessonTitle || 'Expressão')}</span>
+            <button class="vault-star-btn ${isStarred ? 'active' : ''}" data-star-term="${escapeHtmlAttr(item.term)}" title="Salvar para revisão no Caderno">⭐️</button>
+          </div>
+          <h4 class="vault-term">${escapeHtml(item.term)}</h4>
+          <p class="vault-meaning">${escapeHtml(item.meaning)}</p>
+          ${item.example ? `<p class="vault-context">"${escapeHtml(item.example)}..."</p>` : ''}
+        </div>
+        <div class="vault-card-footer">
+          <button class="vault-audio-btn play-vault-audio-btn" data-term="${escapeHtmlAttr(item.term)}">
+            <span>🔊</span> <span>Pronúncia</span>
+          </button>
+          <button class="vault-master-btn ${isMastered ? 'active' : ''}" data-master-term="${escapeHtmlAttr(item.term)}">
+            ${isMastered ? '✅ Dominada' : 'Marcar Dominada'}
+          </button>
+        </div>
+      `;
+
+      // Audio button
+      card.querySelector('.play-vault-audio-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        speakBritish(item.term);
+      });
+
+      // Star button
+      card.querySelector('.vault-star-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleStarExpression(item.term);
+      });
+
+      // Master button
+      card.querySelector('.vault-master-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleMasterExpression(item.term);
+      });
+
+      vaultExpressionsGrid.appendChild(card);
+    });
+  }
+
+  // =========================================================================
+  // 5. Flashcards Mode (Active Recall 3D Flip)
+  // =========================================================================
+  function startFlashcards() {
+    const all = getAllExpressions();
+    // Prioritize starred expressions; if none, use first 25
+    if (vaultStarred.size > 0) {
+      flashcardsDeck = all.filter(i => vaultStarred.has(i.term));
+    } else {
+      flashcardsDeck = all.slice(0, 25);
+    }
+
+    currentFcIndex = 0;
+    renderFlashcard();
+  }
+
+  function renderFlashcard() {
+    if (!flashcardElement) return;
+
+    if (!flashcardsDeck.length) {
+      fcTerm.textContent = "Nenhum cartão selecionado";
+      fcMeaning.textContent = "Adicione expressões com a estrela ⭐️ para revisar.";
+      fcContext.textContent = "";
+      flashcardCounter.textContent = "0 de 0";
+      return;
+    }
+
+    if (currentFcIndex >= flashcardsDeck.length) {
+      // Completed round
+      flashcardElement.classList.remove('flipped');
+      fcDayTag.textContent = "Parabéns!";
+      fcTerm.textContent = "Rodada Concluída! 🎉";
+      fcMeaning.textContent = "Você revisou todos os cartões desta sessão.";
+      fcContext.textContent = "Continue praticando nas lições de 2 minutos ou reinicie o deck.";
+      flashcardCounter.textContent = `Fim da revisão (${flashcardsDeck.length} revisados)`;
+      return;
+    }
+
+    const item = flashcardsDeck[currentFcIndex];
+    flashcardElement.classList.remove('flipped');
+
+    const dayDisplay = typeof item.day === 'number' ? `Day ${String(item.day).padStart(2, '0')}` : (item.day || 'Custom');
+    fcDayTag.textContent = `${dayDisplay} • ${item.lessonTitle || 'Expressão'}`;
+    fcTerm.textContent = item.term;
+    fcMeaning.textContent = item.meaning;
+    fcContext.textContent = item.example ? `"${item.example}..."` : '';
+    flashcardCounter.textContent = `Cartão ${currentFcIndex + 1} de ${flashcardsDeck.length}`;
+  }
+
+  function flipFlashcard() {
+    if (flashcardElement) {
+      flashcardElement.classList.toggle('flipped');
+    }
+  }
+
+  function nextFlashcard(markedAsMastered = false) {
+    if (currentFcIndex < flashcardsDeck.length) {
+      const currentItem = flashcardsDeck[currentFcIndex];
+      if (markedAsMastered && currentItem) {
+        vaultMastered.add(currentItem.term);
+        saveVaultData();
+        updateVaultStats();
+      }
+    }
+    currentFcIndex++;
+    renderFlashcard();
+  }
+
+  // =========================================================================
+  // 6. Mode Navigation (Trail vs Vault vs Soundboard)
   // =========================================================================
   function setMode(mode) {
     currentMode = mode;
-    if (mode === 'trail') {
-      navTrailBtn.classList.add('active');
-      navSoundboardBtn.classList.remove('active');
-      trailView.classList.remove('hidden');
-      soundboardView.classList.add('hidden');
+
+    navTrailBtn.classList.toggle('active', mode === 'trail');
+    navVaultBtn.classList.toggle('active', mode === 'vault');
+    navSoundboardBtn.classList.toggle('active', mode === 'soundboard');
+
+    trailView.classList.toggle('hidden', mode !== 'trail');
+    vaultView.classList.toggle('hidden', mode !== 'vault');
+    soundboardView.classList.toggle('hidden', mode !== 'soundboard');
+
+    if (mode === 'vault') {
+      if (trailMasterAudioElem) trailMasterAudioElem.pause();
       closeStudio();
-    } else {
-      navSoundboardBtn.classList.add('active');
-      navTrailBtn.classList.remove('active');
-      soundboardView.classList.remove('hidden');
-      trailView.classList.add('hidden');
+      if (vaultSubMode === 'list') {
+        renderVaultList();
+      } else {
+        startFlashcards();
+      }
+      updateVaultStats();
+    } else if (mode === 'soundboard') {
       if (trailMasterAudioElem) trailMasterAudioElem.pause();
       renderSoundboardGrid();
+    } else {
+      closeStudio();
     }
   }
 
   // =========================================================================
-  // 5. Speech Synthesis & Voices
+  // 7. Speech Synthesis & British Voices
   // =========================================================================
   function initVoices() {
     if (!('speechSynthesis' in window)) return;
@@ -279,7 +612,7 @@
   }
 
   // =========================================================================
-  // 6. Speech Recognition (STT) for Pronunciation Check
+  // 8. Speech Recognition (STT) for Pronunciation Check
   // =========================================================================
   function initSpeechRecognition() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -354,7 +687,7 @@
   }
 
   // =========================================================================
-  // 7. 30-Day Immersion Trail (Primary Engine)
+  // 9. 30-Day Immersion Trail (Primary Engine)
   // =========================================================================
   const WEEK_LABELS = [
     "🏛️ Semana 1: Fundamentos da Articulação & Cadência Serena (Dias 1-7)",
@@ -391,7 +724,7 @@
       btn.dataset.day = item.day;
       btn.innerHTML = `
         <div class="trail-day-meta-box">
-          <span class="trail-day-num">D${item.day}</span>
+          <span class="trail-day-num">D${String(item.day).padStart(2, '0')}</span>
           <span class="trail-day-name">${escapeHtml(item.title)}</span>
         </div>
         <span>${isDone ? '✅' : '⚪'}</span>
@@ -418,8 +751,8 @@
     });
 
     // Populate Main Header
-    workoutDayBadge.textContent = `Dia ${item.day} de 30`;
-    workoutVoiceBadge.textContent = `🎙️ Narrador Oficial: ${item.voice.includes('Sonia') ? 'Sonia (Londres)' : 'Ryan (Oxford RP)'}`;
+    workoutDayBadge.textContent = `Dia ${String(item.day).padStart(2, '0')} de 30`;
+    workoutVoiceBadge.textContent = `🎙️ Narrador Oficial: ${item.voice && item.voice.includes('Sonia') ? 'Sonia (Londres RP)' : 'Ryan (Oxford RP)'}`;
     workoutMainTitle.textContent = item.title;
     workoutFocusTag.textContent = `Foco Fonético: ${item.accentFocus}`;
 
@@ -431,33 +764,85 @@
     trailMasterTimeReadout.textContent = "0:00 / 0:00";
     trailMasterPlayBtn.textContent = "▶";
 
-    // Setup Passo 2: Full Script
+    // Update expressions count on tab
+    const exprCount = (item.glossary && item.glossary.length) || 0;
+    if (dayExprCount) dayExprCount.textContent = exprCount;
+
+    // Setup Tab 1: Full Script & Portuguese Translations
     workoutFullScriptBox.innerHTML = '';
-    const paragraphs = item.script.split('\n\n');
-    paragraphs.forEach(pText => {
-      const p = document.createElement('p');
-      p.textContent = pText.trim();
-      workoutFullScriptBox.appendChild(p);
+    const paragraphs = item.paragraphs || [];
+
+    paragraphs.forEach((pObj, pIdx) => {
+      const pItem = document.createElement('div');
+      pItem.className = 'script-paragraph-item';
+
+      // Highlight key expressions in text
+      let highlightedEn = escapeHtml(pObj.text);
+      if (item.glossary && item.glossary.length) {
+        item.glossary.forEach(g => {
+          const re = new RegExp(`\\b(${escapeRegExp(g.term)})\\b`, 'gi');
+          highlightedEn = highlightedEn.replace(re, `<mark class="script-mark-expr" data-term="${escapeHtmlAttr(g.term)}" title="Clique para ouvir pronunciation">$1</mark>`);
+        });
+      }
+
+      pItem.innerHTML = `
+        <p class="script-paragraph-en">${highlightedEn}</p>
+        <p class="translation-text-pt ${isTranslationVisible ? '' : 'hidden'}">${escapeHtml(pObj.textPt || '')}</p>
+      `;
+
+      // Bind click on marks to speak term
+      pItem.querySelectorAll('.script-mark-expr').forEach(mark => {
+        mark.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const t = mark.getAttribute('data-term');
+          speakBritish(t);
+        });
+      });
+
+      workoutFullScriptBox.appendChild(pItem);
     });
 
-    // Setup Passo 3: Glossary Cards
+    // Setup Tab 2: Key Expressions
     workoutGlossaryGrid.innerHTML = '';
     if (item.glossary && item.glossary.length) {
       item.glossary.forEach(g => {
+        const isStarred = vaultStarred.has(g.term);
         const card = document.createElement('div');
         card.className = 'glossary-card';
         card.innerHTML = `
-          <strong>${escapeHtml(g.term)}</strong>
-          <span>${escapeHtml(g.meaning)}</span>
+          <div>
+            <div class="glossary-header">
+              <strong class="glossary-term">${escapeHtml(g.term)}</strong>
+              <button class="btn-star-expr ${isStarred ? 'starred' : ''}" data-star-term="${escapeHtmlAttr(g.term)}" title="Salvar no seu Caderno de Revisão">⭐️</button>
+            </div>
+            <p class="glossary-pt">${escapeHtml(g.meaning)}</p>
+          </div>
+          <div class="glossary-footer">
+            <button class="btn-speak-expr" data-speak-term="${escapeHtmlAttr(g.term)}">
+              <span>🔊</span> <span>Ouvir Pronúncia</span>
+            </button>
+          </div>
         `;
+
+        // Star button
+        card.querySelector('.btn-star-expr').addEventListener('click', (e) => {
+          e.stopPropagation();
+          toggleStarExpression(g.term);
+        });
+
+        // Speak button
+        card.querySelector('.btn-speak-expr').addEventListener('click', (e) => {
+          e.stopPropagation();
+          speakBritish(g.term);
+        });
+
         workoutGlossaryGrid.appendChild(card);
       });
     }
 
-    // Setup Passo 4: 3 Workout Blocks
+    // Setup Tab 3: 3 Workout Blocks
     workoutParagraphsList.innerHTML = '';
-    const blocks = item.paragraphs || [];
-    blocks.forEach((b, bIdx) => {
+    paragraphs.forEach((b, bIdx) => {
       const blockEl = document.createElement('div');
       blockEl.className = 'workout-block-item';
       blockEl.innerHTML = `
@@ -473,8 +858,9 @@
           </div>
         </div>
         <p class="block-text">${escapeHtml(b.text)}</p>
+        <p class="translation-text-pt ${isTranslationVisible ? '' : 'hidden'}" style="margin-bottom: 0.65rem;">${escapeHtml(b.textPt || '')}</p>
         <div class="block-cheat-tip">
-          💡 <strong>Dica Fonética:</strong> ${escapeHtml(b.cheatTips || item.brazilianCheatTips || '')}
+          💡 <strong>Dica Fonética & Fôlego:</strong> ${escapeHtml(b.cheatTips || item.brazilianCheatTips || '')}
         </div>
       `;
 
@@ -534,7 +920,7 @@
   }
 
   // =========================================================================
-  // 8. Master 2-Minute Audio Player Controls
+  // 10. Master 2-Minute Audio Player Controls
   // =========================================================================
   function setupTrailMasterPlayer() {
     trailMasterPlayBtn.addEventListener('click', () => {
@@ -593,7 +979,7 @@
   }
 
   // =========================================================================
-  // 9. 2-Minute Master Recorder (Full Reading Recording)
+  // 11. 2-Minute Master Recorder (Full Continuous Recording)
   // =========================================================================
   function resetMasterRecordState() {
     masterBlob = null;
@@ -657,130 +1043,65 @@
     }
     isMasterRecording = false;
     trailRecordMasterBtn.classList.remove('recording');
-    trailRecordMasterLabel.textContent = "Regravar Minha Sessão";
+    trailRecordMasterLabel.textContent = "Gravar Minha Sessão de 2 Minutos";
   }
 
-  function playMasterUserAudio(onEndCallback = null) {
+  function playMasterUserAudio() {
     if (!masterAudioUrl) return;
-    const audio = new Audio(masterAudioUrl);
-    if (onEndCallback) audio.onended = onEndCallback;
-    audio.play();
+    const userAudio = new Audio(masterAudioUrl);
+    userAudio.play();
   }
 
   function playMasterDualCompare() {
-    if (!currentTrailDay || !masterAudioUrl) return;
-
-    trailDualCompareBtn.disabled = true;
-    trailDualCompareBtn.innerHTML = '<span>⚡ Tocando Trecho Nativo...</span>';
-
-    // Play 15 seconds of master audio, then 15 seconds of user recording to compare cadence
+    if (!masterAudioUrl || !trailMasterAudioElem.src) return;
+    // Play both master native and user recording side by side
     trailMasterAudioElem.currentTime = 0;
     trailMasterAudioElem.play();
+    trailMasterPlayBtn.textContent = "⏸";
 
-    setTimeout(() => {
-      trailMasterAudioElem.pause();
-      trailDualCompareBtn.innerHTML = '<span>🎧 Ouvindo Sua Voz...</span>';
-      playMasterUserAudio(() => {
-        trailDualCompareBtn.disabled = false;
-        trailDualCompareBtn.innerHTML = '<span class="icon">⚡</span><span>Comparar Ritmo (Dual)</span>';
-      });
-    }, 12000);
+    const userAudio = new Audio(masterAudioUrl);
+    userAudio.play();
   }
 
   // =========================================================================
-  // 10. Canvases & Waveform Visualizers
-  // =========================================================================
-  function setupCanvases() {
-    drawIdleCanvas(trailVisualizerCanvas);
-    drawIdleCanvas(studioVisualizerCanvas);
-  }
-
-  function drawIdleCanvas(canvas) {
-    if (!canvas) return;
-    canvas.width = canvas.offsetWidth || 500;
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#0e1e38';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    ctx.strokeStyle = '#c49733';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(0, canvas.height / 2);
-    ctx.lineTo(canvas.width, canvas.height / 2);
-    ctx.stroke();
-  }
-
-  function setupMasterAudioStream(stream) {
-    if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const source = audioContext.createMediaStreamSource(stream);
-    masterAnalyser = audioContext.createAnalyser();
-    masterAnalyser.fftSize = 64;
-    source.connect(masterAnalyser);
-  }
-
-  function startMasterVisualizerLoop() {
-    if (!masterAnalyser || !trailVisualizerCanvas) return;
-    const ctx = trailVisualizerCanvas.getContext('2d');
-    const bufferLength = masterAnalyser.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
-
-    function draw() {
-      if (!isMasterRecording) return;
-      requestAnimationFrame(draw);
-
-      masterAnalyser.getByteFrequencyData(dataArray);
-
-      ctx.fillStyle = '#0e1e38';
-      ctx.fillRect(0, 0, trailVisualizerCanvas.width, trailVisualizerCanvas.height);
-
-      const barWidth = (trailVisualizerCanvas.width / bufferLength) * 1.5;
-      let x = 0;
-
-      for (let i = 0; i < bufferLength; i++) {
-        const barHeight = (dataArray[i] / 255) * trailVisualizerCanvas.height;
-        ctx.fillStyle = i % 2 === 0 ? '#c49733' : '#1b8a5a';
-        ctx.fillRect(x, trailVisualizerCanvas.height - barHeight, barWidth - 1, barHeight);
-        x += barWidth;
-      }
-    }
-    draw();
-  }
-
-  // =========================================================================
-  // 11. Studio Dock (Block & Phrase Practice)
+  // 12. Studio Dock (Phonetics & Individual Block Shadowing)
   // =========================================================================
   function openStudio(phrase) {
     activePhrase = phrase;
-    studioPhraseText.textContent = phrase.en;
-    studioIpa.textContent = phrase.ipa;
-    studioCheat.textContent = `Mapeamento: "${phrase.cheat}"`;
-    studioTip.textContent = phrase.tip || "Articule com cadência pausada.";
+    studioDock.classList.remove('hidden');
 
+    studioPhraseText.textContent = phrase.en;
+    studioIpa.textContent = phrase.ipa || '/.../';
+    studioCheat.textContent = phrase.cheat || 'Cadência suave';
+    studioTip.textContent = phrase.tip || 'Foque em respirar com calma e manter o tom aveludado.';
+
+    // Reset recording & STT states
+    resetStudioRecordingState();
+    sttTranscriptWrap.classList.add('hidden');
+    sttStatusText.textContent = "Aguardando gravação para validação de pronúncia...";
+    setSttDot('idle');
+
+    // Smooth scroll into studio
+    studioDock.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function closeStudio() {
+    studioDock.classList.add('hidden');
+    activePhrase = null;
+    stopStudioRecording();
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+  }
+
+  function resetStudioRecordingState() {
     studioBlob = null;
     if (studioAudioUrl) URL.revokeObjectURL(studioAudioUrl);
     studioAudioUrl = null;
     studioPlayUserBtn.disabled = true;
     studioPlayDualBtn.disabled = true;
     studioRecordLabel.textContent = "Gravar Minha Voz";
-    sttStatusText.textContent = "Aguardando gravação para validação de pronúncia...";
-    setSttDot('idle');
-    sttTranscriptWrap.classList.add('hidden');
-    sttTranscriptText.textContent = '';
-
+    studioRecordBtn.classList.remove('recording');
+    isStudioRecording = false;
     drawIdleCanvas(studioVisualizerCanvas);
-
-    studioDock.classList.remove('hidden');
-    studioDock.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
-    speakBritish(phrase.en);
-  }
-
-  function closeStudio() {
-    if (isStudioRecording) stopStudioRecording();
-    if (window.speechSynthesis) window.speechSynthesis.cancel();
-    studioDock.classList.add('hidden');
-    activePhrase = null;
   }
 
   async function toggleStudioRecording() {
@@ -818,9 +1139,7 @@
       studioRecorder.start();
       isStudioRecording = true;
       studioRecordBtn.classList.add('recording');
-      studioRecordLabel.textContent = "Parar Gravação (Gravando...)";
-      sttStatusText.textContent = "Gravando sua voz... Fale com dicção clara!";
-      setSttDot('active');
+      studioRecordLabel.textContent = "Parar Gravação";
 
       if (recognition && !isRecognizing) {
         try { recognition.start(); } catch (e) {}
@@ -829,7 +1148,7 @@
       startStudioVisualizerLoop();
     } catch (err) {
       console.error('Microfone inacessível:', err);
-      alert('Não foi possível acessar seu microfone.');
+      alert('Não foi possível acessar seu microfone. Verifique as permissões.');
     }
   }
 
@@ -839,74 +1158,153 @@
     }
     isStudioRecording = false;
     studioRecordBtn.classList.remove('recording');
-    studioRecordLabel.textContent = "Regravar Minha Voz";
+    studioRecordLabel.textContent = "Gravar Minha Voz";
+
     if (recognition && isRecognizing) {
       try { recognition.stop(); } catch (e) {}
     }
   }
 
+  function playStudioUserAudio() {
+    if (!studioAudioUrl) return;
+    const userAudio = new Audio(studioAudioUrl);
+    userAudio.play();
+  }
+
+  function playStudioDualShadowing() {
+    if (!studioAudioUrl || !activePhrase) return;
+    speakBritish(activePhrase.en);
+    const userAudio = new Audio(studioAudioUrl);
+    setTimeout(() => {
+      userAudio.play();
+    }, 120);
+  }
+
+  // =========================================================================
+  // 13. Canvas Audio Visualizer
+  // =========================================================================
+  function setupCanvases() {
+    drawIdleCanvas(studioVisualizerCanvas);
+    drawIdleCanvas(trailVisualizerCanvas);
+  }
+
+  function getAudioContext() {
+    if (!audioContext) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) audioContext = new AudioCtx();
+    }
+    return audioContext;
+  }
+
   function setupStudioAudioStream(stream) {
-    if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const source = audioContext.createMediaStreamSource(stream);
-    studioAnalyser = audioContext.createAnalyser();
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') ctx.resume();
+
+    const source = ctx.createMediaStreamSource(stream);
+    studioAnalyser = ctx.createAnalyser();
     studioAnalyser.fftSize = 64;
     source.connect(studioAnalyser);
   }
 
+  function setupMasterAudioStream(stream) {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') ctx.resume();
+
+    const source = ctx.createMediaStreamSource(stream);
+    masterAnalyser = ctx.createAnalyser();
+    masterAnalyser.fftSize = 64;
+    source.connect(masterAnalyser);
+  }
+
+  function drawIdleCanvas(canvas) {
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width = canvas.offsetWidth || 300;
+    const h = canvas.height = canvas.offsetHeight || 50;
+
+    ctx.fillStyle = '#0e1e38';
+    ctx.fillRect(0, 0, w, h);
+
+    ctx.strokeStyle = 'rgba(196, 151, 51, 0.4)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(0, h / 2);
+    ctx.lineTo(w, h / 2);
+    ctx.stroke();
+  }
+
   function startStudioVisualizerLoop() {
     if (!studioAnalyser || !studioVisualizerCanvas) return;
-    const ctx = studioVisualizerCanvas.getContext('2d');
+    const canvas = studioVisualizerCanvas;
+    const ctx = canvas.getContext('2d');
     const bufferLength = studioAnalyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
 
     function draw() {
-      if (!isStudioRecording) return;
+      if (!isStudioRecording) {
+        drawIdleCanvas(canvas);
+        return;
+      }
       requestAnimationFrame(draw);
-
       studioAnalyser.getByteFrequencyData(dataArray);
 
-      ctx.fillStyle = '#0e1e38';
-      ctx.fillRect(0, 0, studioVisualizerCanvas.width, studioVisualizerCanvas.height);
+      const w = canvas.width = canvas.offsetWidth;
+      const h = canvas.height = canvas.offsetHeight;
 
-      const barWidth = (studioVisualizerCanvas.width / bufferLength) * 1.5;
+      ctx.fillStyle = '#0e1e38';
+      ctx.fillRect(0, 0, w, h);
+
+      const barWidth = (w / bufferLength) * 1.5;
       let x = 0;
 
       for (let i = 0; i < bufferLength; i++) {
-        const barHeight = (dataArray[i] / 255) * studioVisualizerCanvas.height;
-        ctx.fillStyle = i % 2 === 0 ? '#c49733' : '#1b8a5a';
-        ctx.fillRect(x, studioVisualizerCanvas.height - barHeight, barWidth - 1, barHeight);
+        const barHeight = (dataArray[i] / 255) * h;
+        ctx.fillStyle = `rgba(196, 151, 51, ${0.4 + (dataArray[i] / 255) * 0.6})`;
+        ctx.fillRect(x, h - barHeight, barWidth - 1, barHeight);
         x += barWidth;
       }
     }
     draw();
   }
 
-  function playStudioUserAudio(onEndCallback = null) {
-    if (!studioAudioUrl) return;
-    const audio = new Audio(studioAudioUrl);
-    if (onEndCallback) audio.onended = onEndCallback;
-    audio.play();
-  }
+  function startMasterVisualizerLoop() {
+    if (!masterAnalyser || !trailVisualizerCanvas) return;
+    const canvas = trailVisualizerCanvas;
+    const ctx = canvas.getContext('2d');
+    const bufferLength = masterAnalyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
 
-  function playStudioDualShadowing() {
-    if (!activePhrase || !studioAudioUrl) return;
+    function draw() {
+      if (!isMasterRecording) {
+        drawIdleCanvas(canvas);
+        return;
+      }
+      requestAnimationFrame(draw);
+      masterAnalyser.getByteFrequencyData(dataArray);
 
-    studioPlayDualBtn.disabled = true;
-    studioPlayDualBtn.innerHTML = '<span>⚡ Tocando Modelo Nativo...</span>';
+      const w = canvas.width = canvas.offsetWidth;
+      const h = canvas.height = canvas.offsetHeight;
 
-    speakBritish(activePhrase.en, () => {
-      studioPlayDualBtn.innerHTML = '<span>🎧 Ouvindo Sua Voz...</span>';
-      setTimeout(() => {
-        playStudioUserAudio(() => {
-          studioPlayDualBtn.disabled = false;
-          studioPlayDualBtn.innerHTML = '<span class="icon">⚡</span><span>Comparar Ritmo (Dual)</span>';
-        });
-      }, 350);
-    });
+      ctx.fillStyle = '#0e1e38';
+      ctx.fillRect(0, 0, w, h);
+
+      const barWidth = (w / bufferLength) * 1.5;
+      let x = 0;
+
+      for (let i = 0; i < bufferLength; i++) {
+        const barHeight = (dataArray[i] / 255) * h;
+        ctx.fillStyle = `rgba(196, 151, 51, ${0.4 + (dataArray[i] / 255) * 0.6})`;
+        ctx.fillRect(x, h - barHeight, barWidth - 1, barHeight);
+        x += barWidth;
+      }
+    }
+    draw();
   }
 
   // =========================================================================
-  // 12. Soundboard de Bolso (Secondary View)
+  // 14. Soundboard de Bolso (Secondary View)
   // =========================================================================
   const DEFAULT_SOUNDBOARD = [
     { id: 'p1', cat: 'politeness', en: "I'm afraid that won't be possible.", pt: "Receio que isso não será possível.", ipa: "/aɪm əˈfreɪd ðæt wəʊnt biː ˈpɒsəbl̩/", cheat: "áim uh-frêid dhét wôunt bi póssubôul", tip: "'Won't' com o ditongo /əʊ/ e 't' final seco." },
@@ -928,23 +1326,24 @@
   function loadSoundboardPhrases() {
     let custom = [];
     try {
-      const saved = localStorage.getItem(STORAGE_CUSTOM_KEY);
+      const saved = localStorage.getItem(STORAGE_CUSTOM_PHRASES_KEY);
       if (saved) custom = JSON.parse(saved);
     } catch (e) {}
     allSoundboardPhrases = [...DEFAULT_SOUNDBOARD, ...custom];
-    countAll.textContent = allSoundboardPhrases.length;
+    if (countAll) countAll.textContent = allSoundboardPhrases.length;
   }
 
   function renderSoundboardGrid() {
+    if (!phrasesGrid) return;
     const q = searchQuery.toLowerCase();
     const list = allSoundboardPhrases.filter(p => {
       const matchCat = currentCategory === 'all' || p.cat === currentCategory;
       if (!matchCat) return false;
       if (!q) return true;
-      return p.en.toLowerCase().includes(q) || p.pt.toLowerCase().includes(q) || p.cheat.toLowerCase().includes(q);
+      return p.en.toLowerCase().includes(q) || p.pt.toLowerCase().includes(q) || (p.cheat && p.cheat.toLowerCase().includes(q));
     });
 
-    displayedCount.textContent = list.length;
+    if (displayedCount) displayedCount.textContent = list.length;
     phrasesGrid.innerHTML = '';
 
     list.forEach(item => {
@@ -1025,12 +1424,36 @@
   }
 
   // =========================================================================
-  // 13. Event Listeners & Binding
+  // 15. Event Listeners & Binding
   // =========================================================================
   function bindEvents() {
     // Mode Navigation
     navTrailBtn.addEventListener('click', () => setMode('trail'));
+    navVaultBtn.addEventListener('click', () => setMode('vault'));
     navSoundboardBtn.addEventListener('click', () => setMode('soundboard'));
+
+    // Workout Internal Tabs Switching
+    workoutTabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        workoutTabBtns.forEach(b => b.classList.remove('active'));
+        workoutTabPanes.forEach(pane => pane.classList.add('hidden'));
+
+        btn.classList.add('active');
+        const targetTabId = btn.getAttribute('data-tab');
+        const targetPane = document.getElementById(targetTabId);
+        if (targetPane) targetPane.classList.remove('hidden');
+      });
+    });
+
+    // Translation Checkbox Toggle
+    if (toggleTranslationCheck) {
+      toggleTranslationCheck.addEventListener('change', (e) => {
+        isTranslationVisible = e.target.checked;
+        document.querySelectorAll('.translation-text-pt').forEach(el => {
+          el.classList.toggle('hidden', !isTranslationVisible);
+        });
+      });
+    }
 
     // Master Player Controls
     setupTrailMasterPlayer();
@@ -1042,6 +1465,111 @@
 
     // Complete Day
     btnCompleteDay.addEventListener('click', toggleCompleteCurrentDay);
+
+    // Vault Subnav: List vs Flashcards
+    if (vaultTabListBtn && vaultTabCardsBtn) {
+      vaultTabListBtn.addEventListener('click', () => {
+        vaultSubMode = 'list';
+        vaultTabListBtn.classList.add('active');
+        vaultTabCardsBtn.classList.remove('active');
+        vaultModeList.classList.remove('hidden');
+        vaultModeCards.classList.add('hidden');
+        renderVaultList();
+      });
+
+      vaultTabCardsBtn.addEventListener('click', () => {
+        vaultSubMode = 'cards';
+        vaultTabCardsBtn.classList.add('active');
+        vaultTabListBtn.classList.remove('active');
+        vaultModeCards.classList.remove('hidden');
+        vaultModeList.classList.add('hidden');
+        startFlashcards();
+      });
+    }
+
+    // Flashcard Flip & Buttons
+    if (flashcardElement) {
+      flashcardElement.addEventListener('click', flipFlashcard);
+    }
+    if (fcFlipBtn) {
+      fcFlipBtn.addEventListener('click', flipFlashcard);
+    }
+    if (fcAudioBtn) {
+      fcAudioBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (flashcardsDeck[currentFcIndex]) {
+          speakBritish(flashcardsDeck[currentFcIndex].term);
+        }
+      });
+    }
+    if (fcRepeatBtn) {
+      fcRepeatBtn.addEventListener('click', () => nextFlashcard(false));
+    }
+    if (fcMasterBtn) {
+      fcMasterBtn.addEventListener('click', () => nextFlashcard(true));
+    }
+
+    // Vault Filter Pills
+    vPills.forEach(pill => {
+      pill.addEventListener('click', () => {
+        vPills.forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        vaultFilter = pill.getAttribute('data-filter') || 'all';
+        renderVaultList();
+      });
+    });
+
+    // Vault Search Input
+    if (vaultSearchInput) {
+      vaultSearchInput.addEventListener('input', (e) => {
+        vaultSearchQuery = e.target.value.trim();
+        renderVaultList();
+      });
+    }
+
+    // Modal: Add Custom Expression
+    if (openAddExpressionBtn && addExpressionModal) {
+      openAddExpressionBtn.addEventListener('click', () => {
+        addExpressionModal.classList.remove('hidden');
+        customTerm.focus();
+      });
+      if (closeExprModalBtn) {
+        closeExprModalBtn.addEventListener('click', () => addExpressionModal.classList.add('hidden'));
+      }
+      if (cancelExprModalBtn) {
+        cancelExprModalBtn.addEventListener('click', () => addExpressionModal.classList.add('hidden'));
+      }
+      if (addExpressionForm) {
+        addExpressionForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const t = customTerm.value.trim();
+          const m = customMeaning.value.trim();
+          const c = customContext ? customContext.value.trim() : '';
+
+          if (!t || !m) return;
+
+          const newExpr = {
+            id: 'cust_expr_' + Date.now(),
+            day: 'Custom',
+            lessonTitle: 'Caderno Pessoal',
+            week: 0,
+            term: t,
+            meaning: m,
+            example: c
+          };
+
+          customExpressions.unshift(newExpr);
+          vaultStarred.add(t); // Automatically star it for revision!
+          saveVaultData();
+          updateVaultBadge();
+          updateVaultStats();
+
+          addExpressionModal.classList.add('hidden');
+          addExpressionForm.reset();
+          renderVaultList();
+        });
+      }
+    }
 
     // Studio Dock controls
     closeStudioBtn.addEventListener('click', closeStudio);
@@ -1063,18 +1591,22 @@
     });
 
     // Soundboard search & categories
-    searchInput.addEventListener('input', (e) => {
-      searchQuery = e.target.value.trim();
-      clearSearchBtn.classList.toggle('hidden', searchQuery.length === 0);
-      renderSoundboardGrid();
-    });
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        searchQuery = e.target.value.trim();
+        clearSearchBtn.classList.toggle('hidden', searchQuery.length === 0);
+        renderSoundboardGrid();
+      });
+    }
 
-    clearSearchBtn.addEventListener('click', () => {
-      searchInput.value = '';
-      searchQuery = '';
-      clearSearchBtn.classList.add('hidden');
-      renderSoundboardGrid();
-    });
+    if (clearSearchBtn) {
+      clearSearchBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        searchQuery = '';
+        clearSearchBtn.classList.add('hidden');
+        renderSoundboardGrid();
+      });
+    }
 
     catPills.forEach(pill => {
       pill.addEventListener('click', () => {
@@ -1083,38 +1615,6 @@
         currentCategory = pill.dataset.cat;
         renderSoundboardGrid();
       });
-    });
-
-    // Modal Add Custom Phrase
-    openAddCustomModalBtn.addEventListener('click', () => addModal.classList.remove('hidden'));
-    closeModalBtn.addEventListener('click', () => addModal.classList.add('hidden'));
-    cancelModalBtn.addEventListener('click', () => addModal.classList.add('hidden'));
-
-    addCustomForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const en = document.getElementById('customEn').value.trim();
-      const pt = document.getElementById('customPt').value.trim() || 'Frase pessoal';
-      const cheat = document.getElementById('customCheat').value.trim() || 'Treino livre';
-      const tip = document.getElementById('customTip').value.trim() || 'Pratique com dicção serena.';
-
-      if (!en) return;
-
-      const newPhrase = {
-        id: 'cust_' + Date.now(),
-        cat: 'custom',
-        en,
-        pt,
-        ipa: '/custom/',
-        cheat,
-        tip
-      };
-
-      allSoundboardPhrases.push(newPhrase);
-      localStorage.setItem(STORAGE_CUSTOM_KEY, JSON.stringify(allSoundboardPhrases.filter(p => p.cat === 'custom')));
-      addModal.classList.add('hidden');
-      addCustomForm.reset();
-      renderSoundboardGrid();
-      openStudio(newPhrase);
     });
   }
 
@@ -1126,6 +1626,18 @@
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
+  }
+
+  function escapeHtmlAttr(str) {
+    if (!str) return '';
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  function escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 
   // Auto-start

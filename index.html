@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The Posh Lab — Trilha de Imersão Britânica & Shadowing Studio</title>
+  <title>The Posh Lab — British Immersion & Shadowing Studio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -17,67 +17,70 @@
         <span class="crest-icon">🇬🇧</span>
         <div>
           <h1 class="brand-title">The Posh Lab</h1>
-          <p class="brand-subtitle">Modern RP British Shadowing • Trilha de Imersão de 30 Dias</p>
+          <p class="brand-subtitle">Modern RP British Shadowing • Oxford & London Cadence</p>
         </div>
       </div>
       <div class="header-controls">
         <!-- Voice selector dropdown -->
         <div class="voice-picker-wrap">
-          <label for="voiceSelect" class="sr-only">Voz Britânica</label>
-          <span class="voice-badge">Voz:</span>
-          <select id="voiceSelect" class="select-voice" aria-label="Selecione a voz britânica">
-            <option value="">Carregando vozes britânicas...</option>
+          <label for="voiceSelect" class="sr-only">British Voice</label>
+          <span class="voice-badge">Voice:</span>
+          <select id="voiceSelect" class="select-voice" aria-label="Select British Voice">
+            <option value="">Loading British voices...</option>
           </select>
         </div>
-        <!-- Speed toggles -->
-        <div class="speed-toggle" role="group" aria-label="Velocidade de reprodução">
-          <button class="speed-btn" data-speed="0.75" title="Mais lento para assimilar a fonética">0.75x</button>
-          <button class="speed-btn" data-speed="0.9" title="Velocidade de transição">0.9x</button>
-          <button class="speed-btn active" data-speed="1.0" title="Velocidade nativa natural">1.0x</button>
+        <!-- Global playback speed -->
+        <div class="speed-toggle" role="group" aria-label="Playback speed">
+          <button class="speed-btn" data-speed="0.75" title="0.75x Slower for phonetics">0.75x</button>
+          <button class="speed-btn" data-speed="0.9" title="0.9x Transition pace">0.9x</button>
+          <button class="speed-btn active" data-speed="1.0" title="1.0x Natural speed">1.0x</button>
         </div>
       </div>
     </div>
   </header>
 
-  <!-- Top Navigation: Mode Switcher -->
+  <!-- Top Navigation: 3 Modes -->
   <nav class="mode-navigation-bar">
     <div class="container mode-nav-inner">
       <button id="navTrailBtn" class="mode-tab-btn active">
-        <span>🗓️</span> Trilha dos 30 Dias (Imersão de ~2 Min Diários)
+        <span>🗓️</span> 30-Day Immersion Trail
         <span class="badge-streak" id="trailStreakBadge">0/30</span>
       </button>
+      <button id="navVaultBtn" class="mode-tab-btn">
+        <span>⭐️</span> Expression Vault & Revision
+        <span class="badge-streak" id="vaultCountBadge">0</span>
+      </button>
       <button id="navSoundboardBtn" class="mode-tab-btn">
-        <span>⚡</span> Soundboard de Bolso (Drills Rápidos)
+        <span>⚡</span> Quick Soundboard
       </button>
     </div>
   </nav>
 
   <!-- =======================================================================
-       MAIN VIEW 1: 30-DAY IMMERSION TRAIL (DEFAULT VIEW)
+       VIEW 1: 30-DAY IMMERSION TRAIL (DEFAULT)
        ======================================================================= -->
   <main id="trailView" class="container main-trail-view">
-    <!-- Hero Progress Banner -->
+    <!-- Clean Trail Header -->
     <section class="trail-hero-card">
       <div class="trail-hero-content">
-        <div class="pill-tag">Trilha Guiada de 30 Dias • Sessões de ~2 Minutos Reais de Fala</div>
-        <h2>Domine o Ritmo, a Melodia e a Compostura do Inglês Britânico Contemporâneo.</h2>
+        <div class="pill-tag">30-Day Guided Trail • ~2-Minute Daily Immersion</div>
+        <h2>Cultivate Natural Rhythm, Cadence & Composure.</h2>
         <p class="trail-hero-desc">
-          Chega de frases soltas sem contexto. Cada dia desta trilha é um <strong>treino profundo de 10 a 15 minutos</strong>:
-          um áudio narrativo contínuo de <strong>~2 minutos</strong> (~250 palavras) gravado com vozes neurais britânicas de alta fidelidade (Ryan & Sonia),
-          com texto completo, glossário de expressões idiomáticas e divisão em <strong>3 blocos manejáveis</strong> para você praticar shadowing com o microfone até internalizar na memória muscular.
+          Daily 10-15 minute workouts built around continuous 2-minute native speech narratives (~250 words) recorded with British neural voices (Ryan & Sonia).
+          Listen with steady breath, toggle Portuguese translations whenever needed, and practice focused shadowing blocks.
         </p>
       </div>
 
       <div class="trail-progress-panel">
         <div class="progress-title-row">
-          <span>Seu Avanço na Trilha:</span>
-          <strong id="trailPercentText">0% Concluído</strong>
+          <span>Trail Progress:</span>
+          <strong id="trailPercentText">0% Completed</strong>
         </div>
         <div class="progress-bar-bg">
           <div id="trailProgressBar" class="progress-bar-fill"></div>
         </div>
         <div class="progress-sub-row">
-          <span id="trailDaysCompletedCount">0</span> de 30 dias completados
+          <span id="trailDaysCompletedCount">0</span> of 30 days mastered
         </div>
       </div>
     </section>
@@ -85,10 +88,10 @@
     <!-- Trail Split Layout -->
     <div class="trail-split-layout">
       <!-- Left: 30-Day Calendar Sidebar -->
-      <aside class="trail-sidebar" aria-label="Navegação dos 30 Dias da Trilha">
+      <aside class="trail-sidebar" aria-label="30-Day Syllabus">
         <div class="sidebar-header">
-          <h3>Mapa da Trilha</h3>
-          <span class="sidebar-sub">30 Sessões Imersivas</span>
+          <h3>The Syllabus</h3>
+          <span class="sidebar-sub">30 Immersion Sessions</span>
         </div>
         <div id="trailDaysSidebarList" class="trail-days-accordion">
           <!-- Populated dynamically via app.js -->
@@ -96,102 +99,103 @@
       </aside>
 
       <!-- Right: Active Day Workout Center -->
-      <section class="trail-workout-center" aria-label="Área de Treino da Lição do Dia">
+      <section class="trail-workout-center" aria-label="Workout Workspace">
         <!-- Day Header -->
         <div class="workout-main-header">
           <div class="workout-meta-top">
-            <span id="workoutDayBadge" class="badge-day">Dia 1 de 30</span>
-            <span id="workoutVoiceBadge" class="badge-voice">🎙️ Narrador: Ryan (Oxford RP)</span>
+            <span id="workoutDayBadge" class="badge-day">Day 01</span>
+            <span id="workoutVoiceBadge" class="badge-voice">🎙️ Speaker: Ryan (Oxford RP)</span>
           </div>
           <h2 id="workoutMainTitle" class="workout-title-text">The London Morning Ritual & Mindset</h2>
-          <div id="workoutFocusTag" class="workout-focus-tag">Foco Fonético: O 'R' Não-Rótico (Non-Rhoticity) & Cadência Serena</div>
+          <div id="workoutFocusTag" class="workout-focus-tag">Accent Focus: Non-Rhotic R & Steady Cadence</div>
         </div>
 
-        <!-- Passo 1: O Áudio Master de 2 Minutos -->
-        <div class="step-card master-audio-step">
-          <div class="step-header">
-            <span class="step-number">Passo 1</span>
-            <div>
-              <h3 class="step-title">Escuta Imersiva — O Áudio Master de ~2 Minutos</h3>
-              <p class="step-desc">Ouça o áudio inteiro pelo menos uma vez de olhos fechados. Sinta a respiração, as pausas e a melodia antes de tentar falar.</p>
+        <!-- Master Audio Player Bar -->
+        <div class="master-player-dock">
+          <div class="player-top-row">
+            <span class="player-status-label">🎧 Master Track (~2 min continuous speech)</span>
+            <div class="player-speed-pills">
+              <button class="player-speed-btn" data-speed="0.75">0.75x</button>
+              <button class="player-speed-btn" data-speed="0.9">0.9x</button>
+              <button class="player-speed-btn active" data-speed="1.0">1.0x</button>
             </div>
           </div>
 
-          <!-- Custom Audio Player Bar -->
-          <div class="custom-audio-player">
-            <div class="player-top-row">
-              <span class="player-status-label">🎧 Áudio Oficial da Lição (~2 min contínuos)</span>
-              <div class="player-speed-pills">
-                <button class="player-speed-btn" data-speed="0.75" title="0.75x mais lento">0.75x</button>
-                <button class="player-speed-btn" data-speed="0.9" title="0.9x transição">0.9x</button>
-                <button class="player-speed-btn active" data-speed="1.0" title="1.0x velocidade nativa">1.0x</button>
-              </div>
+          <div class="player-controls-row">
+            <button id="trailMasterPlayBtn" class="btn-play-large" title="Play / Pause Master Audio">▶</button>
+            <div class="player-scrub-wrap">
+              <input type="range" id="trailMasterSlider" class="scrub-slider" min="0" max="100" value="0">
+              <div class="time-readout" id="trailMasterTimeReadout">0:00 / 0:00</div>
             </div>
-
-            <div class="player-controls-row">
-              <button id="trailMasterPlayBtn" class="btn-play-large" title="Tocar / Pausar áudio master">▶</button>
-              <div class="player-scrub-wrap">
-                <input type="range" id="trailMasterSlider" class="scrub-slider" min="0" max="100" value="0">
-                <div class="time-readout" id="trailMasterTimeReadout">0:00 / 0:00</div>
-              </div>
-              <button id="trailMasterLoopBtn" class="btn-icon-loop" title="Repetir em loop contínuo">🔁</button>
-            </div>
-
-            <audio id="trailMasterAudioElem" preload="metadata"></audio>
+            <button id="trailMasterLoopBtn" class="btn-icon-loop" title="Toggle Loop">🔁</button>
           </div>
+
+          <audio id="trailMasterAudioElem" preload="metadata"></audio>
         </div>
 
-        <!-- Passo 2: O Texto Integral da Lição -->
-        <div class="step-card full-text-step">
-          <div class="step-header">
-            <span class="step-number">Passo 2</span>
-            <div>
-              <h3 class="step-title">Texto Integral da Narrativa</h3>
-              <p class="step-desc">Leia o texto acompanhando a cadência. Observe como as frases respiram sem atropelos.</p>
+        <!-- Workout Navigation Tabs (Clean & Professional) -->
+        <div class="workout-internal-tabs" role="tablist">
+          <button class="workout-tab-btn active" data-tab="tabTranscript">
+            <span>📖</span> Transcript & Translation
+          </button>
+          <button class="workout-tab-btn" data-tab="tabExpressions">
+            <span>⭐️</span> Key Expressions (<span id="dayExprCount">5</span>)
+          </button>
+          <button class="workout-tab-btn" data-tab="tabDrills">
+            <span>🎯</span> Shadowing Blocks (3 Parts)
+          </button>
+          <button class="workout-tab-btn" data-tab="tabRecorder">
+            <span>🎙️</span> 2-Minute Recording Studio
+          </button>
+        </div>
+
+        <!-- Tab 1: Transcript & Translation -->
+        <div id="tabTranscript" class="workout-tab-pane active">
+          <div class="transcript-toolbar">
+            <div class="translation-toggle-wrap">
+              <label class="switch-label">
+                <input type="checkbox" id="toggleTranslationCheck">
+                <span class="slider-toggle"></span>
+              </label>
+              <span class="toggle-text">🇧🇷 Mostrar Tradução em Português</span>
             </div>
+            <span class="transcript-hint">Dica: clique em qualquer expressão grifada para ouvi-la ou salvá-la no seu Caderno.</span>
           </div>
+
           <div id="workoutFullScriptBox" class="full-script-box">
-            <!-- Full paragraphs inserted here -->
+            <!-- Rendered via app.js -->
           </div>
         </div>
 
-        <!-- Passo 3: Glossário de Expressões & Cultura Britânica -->
-        <div class="step-card glossary-step">
-          <div class="step-header">
-            <span class="step-number">Passo 3</span>
-            <div>
-              <h3 class="step-title">Glossário & Expressões do Dia</h3>
-              <p class="step-desc">Vocabulário autêntico do cotidiano de alta sociedade para você soar natural sem afetação.</p>
-            </div>
+        <!-- Tab 2: Key Expressions of the Day -->
+        <div id="tabExpressions" class="workout-tab-pane hidden">
+          <div class="tab-pane-header">
+            <h3>Expressões Mapeadas desta Lição</h3>
+            <p>Clique na estrela ⭐️ para adicionar ao seu <strong>Caderno de Revisão</strong> e treinar com repetição espaçada.</p>
           </div>
           <div id="workoutGlossaryGrid" class="glossary-chips-grid">
-            <!-- Glossary items inserted here -->
+            <!-- Populated via app.js -->
           </div>
         </div>
 
-        <!-- Passo 4: Shadowing em 3 Blocos (Parágrafo por Parágrafo) -->
-        <div class="step-card blocks-step">
-          <div class="step-header">
-            <span class="step-number">Passo 4</span>
-            <div>
-              <h3 class="step-title">Treino de Shadowing em 3 Blocos (~40s cada)</h3>
-              <p class="step-desc">Não tente engolir os 2 minutos de uma vez. Pratique cada parágrafo isoladamente com o microfone até a língua soltar.</p>
-            </div>
+        <!-- Tab 3: Shadowing Blocks (3 Parts) -->
+        <div id="tabDrills" class="workout-tab-pane hidden">
+          <div class="tab-pane-header">
+            <h3>Treino de Shadowing em 3 Blocos (~40s cada)</h3>
+            <p>Pratique cada parágrafo isoladamente. Ouça, repita no microfone e assimile as dicas de fôlego e boca.</p>
           </div>
           <div id="workoutParagraphsList" class="workout-blocks-list">
-            <!-- 3 Paragraph blocks inserted here -->
+            <!-- Populated via app.js -->
           </div>
         </div>
 
-        <!-- Passo 5: O Desafio da Gravação Master dos 2 Minutos -->
-        <div class="step-card master-record-step">
-          <div class="step-header">
-            <span class="step-number">Passo 5</span>
-            <div>
-              <h3 class="step-title">O Desafio dos 2 Minutos — Gravação Contínua</h3>
-              <p class="step-desc">Grave sua voz lendo o texto completo do início ao fim e escute a sua gravação para avaliar seu fôlego e postura.</p>
-            </div>
+        <!-- Tab 4: 2-Minute Recording Studio -->
+        <div id="tabRecorder" class="workout-tab-pane hidden">
+          <div class="tab-pane-header">
+            <h3>O Desafio dos 2 Minutos — Gravação Contínua</h3>
+            <p>Grave sua voz lendo o texto completo do início ao fim e escute a sua gravação para avaliar seu fôlego e postura.</p>
           </div>
+
           <div class="master-record-controls">
             <button id="trailRecordMasterBtn" class="btn-record-master">
               <span class="icon">🎙️</span>
@@ -201,21 +205,22 @@
               <span class="icon">🎧</span>
               <span>Ouvir Minha Gravação</span>
             </button>
-            <button id="trailDualCompareBtn" class="btn-accent-master" disabled title="Toca o modelo nativo e a sua voz sobrepostos para comparar o ritmo">
+            <button id="trailDualCompareBtn" class="btn-accent-master" disabled>
               <span class="icon">⚡</span>
               <span>Comparar Ritmo (Dual)</span>
             </button>
           </div>
+
           <div class="master-record-waveform">
             <canvas id="trailVisualizerCanvas" height="45"></canvas>
           </div>
         </div>
 
-        <!-- Conclusão da Lição -->
+        <!-- Bottom Action: Finish Day -->
         <div class="workout-completion-footer">
           <button id="btnCompleteDay" class="btn-finish-day">
             <span id="finishDayIcon">⚪</span>
-            <span id="finishDayLabel">Marcar Dia como Concluído & Salvar Progresso</span>
+            <span id="finishDayLabel">Marcar Dia como Concluído & Salvar</span>
           </button>
           <p class="footer-save-note">Seu progresso fica salvo automaticamente neste navegador.</p>
         </div>
@@ -224,7 +229,108 @@
   </main>
 
   <!-- =======================================================================
-       SECONDARY VIEW 2: SOUNDBOARD DE BOLSO (DRILLS RÁPIDOS)
+       VIEW 2: EXPRESSION VAULT & REVISION NOTEBOOK (NOVO SISTEMA)
+       ======================================================================= -->
+  <main id="vaultView" class="container main-vault-view hidden">
+    <!-- Vault Hero Banner -->
+    <section class="vault-hero-card">
+      <div class="vault-hero-content">
+        <div class="pill-tag">Seu Caderno de Vocabulário & Expressões</div>
+        <h2>The Expression Vault — Revisão Ativa & Flashcards</h2>
+        <p class="vault-hero-desc">
+          Todas as mais de <strong>130 expressões e colocações de prestígio</strong> da trilha estão mapeadas aqui com tradução e áudio nativo.
+          Salve termos com a estrela ⭐️ para revisar com repetição espaçada e teste sua retenção no modo Flashcards.
+        </p>
+      </div>
+
+      <div class="vault-stats-panel">
+        <div class="stat-box">
+          <span class="stat-num" id="statTotalMapped">130</span>
+          <span class="stat-lbl">Mapeadas na Trilha</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-num" id="statSavedReview">0</span>
+          <span class="stat-lbl">Salvas p/ Revisão ⭐️</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-num" id="statMastered">0</span>
+          <span class="stat-lbl">Dominadas ✅</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Vault Sub-Navigation -->
+    <div class="vault-subnav">
+      <div class="vault-nav-buttons">
+        <button id="vaultTabListBtn" class="vault-nav-btn active">📋 Lista & Filtros</button>
+        <button id="vaultTabCardsBtn" class="vault-nav-btn">🃏 Modo Flashcards</button>
+      </div>
+      <button id="openAddExpressionBtn" class="btn-small-outline">+ Adicionar Minha Expressão</button>
+    </div>
+
+    <!-- Mode A: List & Filters -->
+    <div id="vaultModeList" class="vault-mode-pane">
+      <div class="vault-filters-bar">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="vaultSearchInput" placeholder="Buscar expressão em inglês ou português...">
+        </div>
+
+        <div class="vault-filter-pills">
+          <button class="v-pill active" data-filter="all">Todas (<span id="vCountAll">130</span>)</button>
+          <button class="v-pill" data-filter="starred">⭐️ Salvas para Revisão (<span id="vCountStarred">0</span>)</button>
+          <button class="v-pill" data-filter="mastered">✅ Dominadas (<span id="vCountMastered">0</span>)</button>
+          <button class="v-pill" data-filter="w1">Semana 1</button>
+          <button class="v-pill" data-filter="w2">Semana 2</button>
+          <button class="v-pill" data-filter="w3">Semana 3</button>
+          <button class="v-pill" data-filter="w4">Semana 4</button>
+        </div>
+      </div>
+
+      <div id="vaultExpressionsGrid" class="vault-expressions-grid">
+        <!-- Rendered via app.js -->
+      </div>
+    </div>
+
+    <!-- Mode B: Flashcards / Active Recall -->
+    <div id="vaultModeCards" class="vault-mode-pane hidden">
+      <div class="flashcard-container">
+        <div class="flashcard-meta">
+          <span id="flashcardCounter">Cartão 1 de 10</span>
+          <span class="flashcard-hint">Clique no cartão para revelar a tradução</span>
+        </div>
+
+        <div id="flashcardElement" class="posh-flashcard">
+          <div class="card-inner">
+            <!-- Front: English -->
+            <div class="card-front">
+              <span class="card-tag" id="fcDayTag">Day 01</span>
+              <h3 class="card-term" id="fcTerm">Brisk stroll</h3>
+              <button class="btn-audio-pill" id="fcAudioBtn">🔊 Ouvir Pronúncia</button>
+              <p class="card-prompt">Qual é o significado e nuance em português?</p>
+            </div>
+            <!-- Back: Portuguese -->
+            <div class="card-back">
+              <span class="card-tag">Tradução & Nuance</span>
+              <h4 class="card-pt" id="fcMeaning">Caminhada rápida, com passo firme e revigorante.</h4>
+              <p class="card-context" id="fcContext">"I usually begin my day with a brisk stroll towards Regent's Park..."</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="flashcard-actions">
+          <button id="fcFlipBtn" class="btn-secondary">Girar Cartão (Ver Tradução)</button>
+          <div class="fc-grade-buttons">
+            <button id="fcRepeatBtn" class="btn-action-repeat">🔁 Preciso Revisar</button>
+            <button id="fcMasterBtn" class="btn-action-master">✅ Já Dominei</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- =======================================================================
+       VIEW 3: QUICK SOUNDBOARD (SECONDARY VIEW)
        ======================================================================= -->
   <section id="soundboardView" class="container soundboard-section hidden">
     <div class="soundboard-hero-card">
@@ -301,7 +407,6 @@
         <button class="cat-pill" data-cat="social">Social & Conversa</button>
         <button class="cat-pill" data-cat="debate">Reunião & Assertividade</button>
         <button class="cat-pill" data-cat="drills">Palavras Críticas (Drills)</button>
-        <button class="cat-pill" data-cat="custom">Minhas Frases</button>
       </nav>
     </div>
 
@@ -309,7 +414,6 @@
       <div class="grid-stats">
         Exibindo <span id="displayedCount">0</span> frases de treino rápido
       </div>
-      <button id="openAddCustomModalBtn" class="btn-small-outline">+ Adicionar Frase Própria</button>
     </div>
 
     <section id="phrasesGrid" class="soundboard-grid" aria-label="Grade de frases para shadowing">
@@ -317,33 +421,29 @@
     </section>
   </section>
 
-  <!-- Modal: Add Custom Phrase -->
-  <div id="addModal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+  <!-- Modal: Add Custom Expression -->
+  <div id="addExpressionModal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
     <div class="modal-card">
       <div class="modal-header">
-        <h3>Adicionar Frase ao Seu Treino</h3>
-        <button id="closeModalBtn" class="btn-icon-close">✕</button>
+        <h3>Adicionar Nova Expressão ao Caderno</h3>
+        <button id="closeExprModalBtn" class="btn-icon-close">✕</button>
       </div>
-      <form id="addCustomForm" class="modal-body">
+      <form id="addExpressionForm" class="modal-body">
         <div class="form-group">
-          <label for="customEn">Frase em Inglês (obrigatório):</label>
-          <input type="text" id="customEn" placeholder="Ex: Splendid, let's catch up on Friday." required>
+          <label for="customTerm">Expressão em Inglês (obrigatório):</label>
+          <input type="text" id="customTerm" placeholder="Ex: Touch wood" required>
         </div>
         <div class="form-group">
-          <label for="customPt">Tradução / Contexto:</label>
-          <input type="text" id="customPt" placeholder="Ex: Esplêndido, vamos nos falar na sexta.">
+          <label for="customMeaning">Tradução & Significado em Português:</label>
+          <input type="text" id="customMeaning" placeholder="Ex: Bater na madeira (para afastar mau agouro)" required>
         </div>
         <div class="form-group">
-          <label for="customCheat">Macete Fonético para Brasileiros (opcional):</label>
-          <input type="text" id="customCheat" placeholder="Ex: splén-did, léts kétch ap on fráidei">
-        </div>
-        <div class="form-group">
-          <label for="customTip">Dica de Articulação / Sotaque (opcional):</label>
-          <input type="text" id="customTip" placeholder="Ex: Estale o 't' de 'let's' sem transformar em 'tchi'.">
+          <label for="customContext">Exemplo de Uso em Frase (opcional):</label>
+          <input type="text" id="customContext" placeholder="Ex: The project is on schedule, touch wood.">
         </div>
         <div class="modal-footer">
-          <button type="button" id="cancelModalBtn" class="btn-secondary">Cancelar</button>
-          <button type="submit" class="btn-primary">Salvar Frase</button>
+          <button type="button" id="cancelExprModalBtn" class="btn-secondary">Cancelar</button>
+          <button type="submit" class="btn-primary">Salvar no Caderno</button>
         </div>
       </form>
     </div>
@@ -352,8 +452,8 @@
   <!-- Footer -->
   <footer class="site-footer container">
     <div class="footer-inner">
-      <p><strong>The Posh Lab</strong> — Feito para prática pessoal de shadowing e pronúncia britânica refinada.</p>
-      <p class="footer-note">30 Sessões de Imersão (~2 min de fala contínua cada) • 100% estático • Hospedado no GitHub Pages</p>
+      <p><strong>The Posh Lab</strong> — High Society British Immersion Studio.</p>
+      <p class="footer-note">30 Immersion Sessions • 130+ Mapped Expressions • 100% Client-Side on GitHub Pages</p>
     </div>
   </footer>
 
