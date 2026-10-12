@@ -2,10 +2,12 @@
  * The Posh Lab — British Immersion & Shadowing Studio Engine
  * Features:
  * 1. 30-Day Immersion Trail (Primary View): ~2-minute master audios, full scripts,
- *    multi-paragraph breakdowns, Portuguese translation toggle, 2-minute master recording.
- * 2. Expression Vault & Revision (New Feature): 130+ pre-mapped British expressions,
+ *    multi-paragraph breakdowns, Interlinear Sentence & Word-by-Word Translation.
+ * 2. Instant Word & Collocation Inspector: Click ANY word (e.g. 'grounding', 'bathed in')
+ *    to view instant Portuguese meaning, phonetic IPA, audio, and star to Vault!
+ * 3. Expression Vault & Revision: 140+ pre-mapped British expressions,
  *    starring to personal notebook, Spaced Repetition flashcards, active recall.
- * 3. Quick Soundboard (Secondary View): 34 quick cards, soundboard playback,
+ * 4. Quick Soundboard (Secondary View): 34 quick cards, soundboard playback,
  *    and instant phonetic drills.
  */
 
@@ -27,7 +29,9 @@
   let playbackSpeed = 1.0;
   let selectedBritishVoice = null;
   let isMasterAudioLooping = false;
-  let isTranslationVisible = false;
+  let isTranslationVisible = true; // Default to visible for effortless comprehension
+  let readingMode = 'interlinear'; // 'interlinear' (sentence-by-sentence) or 'paragraph'
+  let activeInspectedTerm = null;
 
   // Expression Vault State
   let vaultStarred = new Set();
@@ -111,6 +115,20 @@
   const workoutTabPanes = document.querySelectorAll('.workout-tab-pane');
   const dayExprCount = document.getElementById('dayExprCount');
   const toggleTranslationCheck = document.getElementById('toggleTranslationCheck');
+  const modeInterlinearBtn = document.getElementById('modeInterlinearBtn');
+  const modeParagraphBtn = document.getElementById('modeParagraphBtn');
+
+  // Word Inspector Popover
+  const wordInspectorPopup = document.getElementById('wordInspectorPopup');
+  const inspTerm = document.getElementById('inspTerm');
+  const inspIpa = document.getElementById('inspIpa');
+  const inspMeaning = document.getElementById('inspMeaning');
+  const inspNote = document.getElementById('inspNote');
+  const inspAudioBtn = document.getElementById('inspAudioBtn');
+  const inspStarBtn = document.getElementById('inspStarBtn');
+  const inspStarIcon = document.getElementById('inspStarIcon');
+  const inspStarLabel = document.getElementById('inspStarLabel');
+  const closeInspectorBtn = document.getElementById('closeInspectorBtn');
 
   // Steps & Content
   const workoutFullScriptBox = document.getElementById('workoutFullScriptBox');
@@ -234,14 +252,14 @@
       } else {
         // First-time friendly seed: star 8 classic expressions from Week 1
         vaultStarred = new Set([
+          'Grounding',
+          'Bathed in',
           'Brisk stroll',
           'In earnest',
           'Buffer zone',
-          'Gravitas',
-          'Deliberate cadence',
+          'Natural gravitas',
           'Rather brilliant',
-          'Spot on',
-          'Understated'
+          'Spot on'
         ]);
         saveVaultData();
       }
@@ -297,18 +315,19 @@
 
   function toggleStarExpression(term) {
     if (!term) return;
-    if (vaultStarred.has(term)) {
-      vaultStarred.delete(term);
+    const norm = term.trim();
+    if (vaultStarred.has(norm)) {
+      vaultStarred.delete(norm);
     } else {
-      vaultStarred.add(term);
+      vaultStarred.add(norm);
     }
     saveVaultData();
     updateVaultBadge();
     updateVaultStats();
 
     // Sync button states on screen
-    document.querySelectorAll(`[data-star-term="${escapeHtmlAttr(term)}"]`).forEach(btn => {
-      const isStarred = vaultStarred.has(term);
+    document.querySelectorAll(`[data-star-term="${escapeHtmlAttr(norm)}"]`).forEach(btn => {
+      const isStarred = vaultStarred.has(norm);
       btn.classList.toggle('active', isStarred);
       btn.classList.toggle('starred', isStarred);
     });
@@ -320,10 +339,11 @@
 
   function toggleMasterExpression(term) {
     if (!term) return;
-    if (vaultMastered.has(term)) {
-      vaultMastered.delete(term);
+    const norm = term.trim();
+    if (vaultMastered.has(norm)) {
+      vaultMastered.delete(norm);
     } else {
-      vaultMastered.add(term);
+      vaultMastered.add(norm);
     }
     saveVaultData();
     updateVaultStats();
@@ -366,7 +386,7 @@
           <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">⭐️</div>
           <h4 style="font-family: var(--font-serif); font-size: 1.4rem; color: var(--navy-primary); margin-bottom: 0.35rem;">Nenhuma expressão encontrada</h4>
           <p style="color: var(--text-secondary); font-size: 0.9rem; max-width: 460px; margin: 0 auto 1.25rem;">
-            ${vaultFilter === 'starred' ? 'Você ainda não favoritou expressões nesta categoria. Clique na estrela ⭐️ nas lições diárias para salvar.' : 'Tente ajustar sua busca ou selecionar outro filtro.'}
+            ${vaultFilter === 'starred' ? 'Você ainda não favoritou expressões nesta categoria. Clique na estrela ⭐️ nas lições diárias ou no texto para salvar.' : 'Tente ajustar sua busca ou selecionar outro filtro.'}
           </p>
         </div>
       `;
@@ -429,7 +449,6 @@
   // =========================================================================
   function startFlashcards() {
     const all = getAllExpressions();
-    // Prioritize starred expressions; if none, use first 25
     if (vaultStarred.size > 0) {
       flashcardsDeck = all.filter(i => vaultStarred.has(i.term));
     } else {
@@ -493,7 +512,140 @@
   }
 
   // =========================================================================
-  // 6. Mode Navigation (Trail vs Vault vs Soundboard)
+  // 6. Interactive Word & Sentence Inspector Engine
+  // =========================================================================
+  function makeInteractiveTokens(plainText, sentenceContext) {
+    if (!plainText) return '';
+    // Split into words, whitespace and punctuation tokens
+    const tokens = plainText.split(/(\s+|[.,!?;:"()]+)/);
+    let html = '';
+
+    tokens.forEach(tok => {
+      if (/^[a-zA-Z0-9'-]+$/.test(tok)) {
+        html += `<span class="word-token" data-word="${escapeHtmlAttr(tok)}" data-sentence="${escapeHtmlAttr(sentenceContext || plainText)}">${escapeHtml(tok)}</span>`;
+      } else {
+        html += escapeHtml(tok);
+      }
+    });
+
+    return html;
+  }
+
+  function openWordInspector(tokenEl) {
+    const word = tokenEl.getAttribute('data-word');
+    const sentence = tokenEl.getAttribute('data-sentence') || '';
+
+    // Lookup word / collocation
+    const info = (window.lookupWord && typeof window.lookupWord === 'function')
+      ? window.lookupWord(word, sentence)
+      : { term: word, meaning: 'Vocabulário do roteiro britânico' };
+
+    activeInspectedTerm = info.term || word;
+
+    // Highlight token visually
+    document.querySelectorAll('.word-token.is-active-inspect').forEach(el => el.classList.remove('is-active-inspect'));
+    tokenEl.classList.add('is-active-inspect');
+
+    // Populate Inspector UI
+    inspTerm.textContent = info.term || word;
+    if (info.ipa) {
+      inspIpa.textContent = info.ipa;
+      inspIpa.style.display = 'inline-block';
+    } else {
+      inspIpa.style.display = 'none';
+    }
+
+    inspMeaning.textContent = info.meaning || 'Tradução contextual';
+    inspNote.textContent = info.note || (info.pos ? `Classe gramatical: ${info.pos}` : '');
+
+    // Sync Star button state
+    const isStarred = vaultStarred.has(activeInspectedTerm);
+    inspStarBtn.classList.toggle('starred', isStarred);
+    inspStarIcon.textContent = isStarred ? '✅' : '⭐️';
+    inspStarLabel.textContent = isStarred ? 'Salvo no Caderno' : 'Salvar no Caderno';
+
+    // Position popover relative to full script container
+    const boxRect = workoutFullScriptBox.getBoundingClientRect();
+    const tokenRect = tokenEl.getBoundingClientRect();
+
+    wordInspectorPopup.classList.remove('hidden');
+
+    const popupWidth = 320;
+    let left = tokenRect.left - boxRect.left;
+    if (left + popupWidth > boxRect.width) {
+      left = Math.max(10, boxRect.width - popupWidth - 10);
+    }
+    let top = tokenRect.bottom - boxRect.top + 8;
+
+    wordInspectorPopup.style.left = `${Math.max(10, left)}px`;
+    wordInspectorPopup.style.top = `${top}px`;
+
+    // Speak British pronunciation
+    speakBritish(activeInspectedTerm);
+  }
+
+  function closeWordInspector() {
+    if (wordInspectorPopup) {
+      wordInspectorPopup.classList.add('hidden');
+    }
+    document.querySelectorAll('.word-token.is-active-inspect').forEach(el => el.classList.remove('is-active-inspect'));
+  }
+
+  function renderWorkoutScript() {
+    if (!currentTrailDay || !workoutFullScriptBox) return;
+    workoutFullScriptBox.innerHTML = '';
+    const paragraphs = currentTrailDay.paragraphs || [];
+
+    if (readingMode === 'interlinear') {
+      // 1. Interlinear Sentence-by-Sentence View
+      paragraphs.forEach((pObj, pIdx) => {
+        const pWrapper = document.createElement('div');
+        pWrapper.className = 'script-paragraph-item';
+
+        const sentences = (pObj.sentences && pObj.sentences.length)
+          ? pObj.sentences
+          : [{ en: pObj.text, pt: pObj.textPt }];
+
+        sentences.forEach((sPair, sIdx) => {
+          const sCard = document.createElement('div');
+          sCard.className = 'bilingual-sentence-pair';
+
+          const enHtml = makeInteractiveTokens(sPair.en, sPair.en);
+          sCard.innerHTML = `
+            <p class="sentence-en">${enHtml}</p>
+            <p class="sentence-pt ${isTranslationVisible ? '' : 'hidden'}">${escapeHtml(sPair.pt)}</p>
+          `;
+          pWrapper.appendChild(sCard);
+        });
+
+        workoutFullScriptBox.appendChild(pWrapper);
+      });
+    } else {
+      // 2. Continuous Block Paragraph View
+      paragraphs.forEach((pObj, pIdx) => {
+        const pItem = document.createElement('div');
+        pItem.className = 'script-paragraph-item';
+
+        const enHtml = makeInteractiveTokens(pObj.text, pObj.text);
+        pItem.innerHTML = `
+          <p class="script-paragraph-en">${enHtml}</p>
+          <p class="translation-text-pt ${isTranslationVisible ? '' : 'hidden'}">${escapeHtml(pObj.textPt || '')}</p>
+        `;
+        workoutFullScriptBox.appendChild(pItem);
+      });
+    }
+
+    // Bind click events on all word tokens
+    workoutFullScriptBox.querySelectorAll('.word-token').forEach(tokEl => {
+      tokEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openWordInspector(tokEl);
+      });
+    });
+  }
+
+  // =========================================================================
+  // 7. Mode Navigation (Trail vs Vault vs Soundboard)
   // =========================================================================
   function setMode(mode) {
     currentMode = mode;
@@ -509,6 +661,7 @@
     if (mode === 'vault') {
       if (trailMasterAudioElem) trailMasterAudioElem.pause();
       closeStudio();
+      closeWordInspector();
       if (vaultSubMode === 'list') {
         renderVaultList();
       } else {
@@ -517,14 +670,16 @@
       updateVaultStats();
     } else if (mode === 'soundboard') {
       if (trailMasterAudioElem) trailMasterAudioElem.pause();
+      closeWordInspector();
       renderSoundboardGrid();
     } else {
       closeStudio();
+      closeWordInspector();
     }
   }
 
   // =========================================================================
-  // 7. Speech Synthesis & British Voices
+  // 8. Speech Synthesis & British Voices
   // =========================================================================
   function initVoices() {
     if (!('speechSynthesis' in window)) return;
@@ -612,7 +767,7 @@
   }
 
   // =========================================================================
-  // 8. Speech Recognition (STT) for Pronunciation Check
+  // 9. Speech Recognition (STT) for Pronunciation Check
   // =========================================================================
   function initSpeechRecognition() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -687,7 +842,7 @@
   }
 
   // =========================================================================
-  // 9. 30-Day Immersion Trail (Primary Engine)
+  // 10. 30-Day Immersion Trail (Primary Engine)
   // =========================================================================
   const WEEK_LABELS = [
     "🏛️ Semana 1: Fundamentos da Articulação & Cadência Serena (Dias 1-7)",
@@ -768,41 +923,13 @@
     const exprCount = (item.glossary && item.glossary.length) || 0;
     if (dayExprCount) dayExprCount.textContent = exprCount;
 
-    // Setup Tab 1: Full Script & Portuguese Translations
-    workoutFullScriptBox.innerHTML = '';
-    const paragraphs = item.paragraphs || [];
+    // Close any open inspector
+    closeWordInspector();
 
-    paragraphs.forEach((pObj, pIdx) => {
-      const pItem = document.createElement('div');
-      pItem.className = 'script-paragraph-item';
+    // Render Tab 1: Full Script with Interlinear & Word Token Support
+    renderWorkoutScript();
 
-      // Highlight key expressions in text
-      let highlightedEn = escapeHtml(pObj.text);
-      if (item.glossary && item.glossary.length) {
-        item.glossary.forEach(g => {
-          const re = new RegExp(`\\b(${escapeRegExp(g.term)})\\b`, 'gi');
-          highlightedEn = highlightedEn.replace(re, `<mark class="script-mark-expr" data-term="${escapeHtmlAttr(g.term)}" title="Clique para ouvir pronunciation">$1</mark>`);
-        });
-      }
-
-      pItem.innerHTML = `
-        <p class="script-paragraph-en">${highlightedEn}</p>
-        <p class="translation-text-pt ${isTranslationVisible ? '' : 'hidden'}">${escapeHtml(pObj.textPt || '')}</p>
-      `;
-
-      // Bind click on marks to speak term
-      pItem.querySelectorAll('.script-mark-expr').forEach(mark => {
-        mark.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const t = mark.getAttribute('data-term');
-          speakBritish(t);
-        });
-      });
-
-      workoutFullScriptBox.appendChild(pItem);
-    });
-
-    // Setup Tab 2: Key Expressions
+    // Setup Tab 2: Key Expressions of the Day
     workoutGlossaryGrid.innerHTML = '';
     if (item.glossary && item.glossary.length) {
       item.glossary.forEach(g => {
@@ -842,7 +969,7 @@
 
     // Setup Tab 3: 3 Workout Blocks
     workoutParagraphsList.innerHTML = '';
-    paragraphs.forEach((b, bIdx) => {
+    (item.paragraphs || []).forEach((b, bIdx) => {
       const blockEl = document.createElement('div');
       blockEl.className = 'workout-block-item';
       blockEl.innerHTML = `
@@ -857,12 +984,20 @@
             </button>
           </div>
         </div>
-        <p class="block-text">${escapeHtml(b.text)}</p>
+        <p class="block-text">${makeInteractiveTokens(b.text, b.text)}</p>
         <p class="translation-text-pt ${isTranslationVisible ? '' : 'hidden'}" style="margin-bottom: 0.65rem;">${escapeHtml(b.textPt || '')}</p>
         <div class="block-cheat-tip">
           💡 <strong>Dica Fonética & Fôlego:</strong> ${escapeHtml(b.cheatTips || item.brazilianCheatTips || '')}
         </div>
       `;
+
+      // Word click in block
+      blockEl.querySelectorAll('.word-token').forEach(tok => {
+        tok.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openWordInspector(tok);
+        });
+      });
 
       // Play block speech
       blockEl.querySelector('.play-block-btn').addEventListener('click', () => {
@@ -920,7 +1055,7 @@
   }
 
   // =========================================================================
-  // 10. Master 2-Minute Audio Player Controls
+  // 11. Master 2-Minute Audio Player Controls
   // =========================================================================
   function setupTrailMasterPlayer() {
     trailMasterPlayBtn.addEventListener('click', () => {
@@ -979,7 +1114,7 @@
   }
 
   // =========================================================================
-  // 11. 2-Minute Master Recorder (Full Continuous Recording)
+  // 12. 2-Minute Master Recorder (Full Continuous Recording)
   // =========================================================================
   function resetMasterRecordState() {
     masterBlob = null;
@@ -1054,7 +1189,6 @@
 
   function playMasterDualCompare() {
     if (!masterAudioUrl || !trailMasterAudioElem.src) return;
-    // Play both master native and user recording side by side
     trailMasterAudioElem.currentTime = 0;
     trailMasterAudioElem.play();
     trailMasterPlayBtn.textContent = "⏸";
@@ -1064,7 +1198,7 @@
   }
 
   // =========================================================================
-  // 12. Studio Dock (Phonetics & Individual Block Shadowing)
+  // 13. Studio Dock (Phonetics & Individual Block Shadowing)
   // =========================================================================
   function openStudio(phrase) {
     activePhrase = phrase;
@@ -1075,13 +1209,11 @@
     studioCheat.textContent = phrase.cheat || 'Cadência suave';
     studioTip.textContent = phrase.tip || 'Foque em respirar com calma e manter o tom aveludado.';
 
-    // Reset recording & STT states
     resetStudioRecordingState();
     sttTranscriptWrap.classList.add('hidden');
     sttStatusText.textContent = "Aguardando gravação para validação de pronúncia...";
     setSttDot('idle');
 
-    // Smooth scroll into studio
     studioDock.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
@@ -1181,7 +1313,7 @@
   }
 
   // =========================================================================
-  // 13. Canvas Audio Visualizer
+  // 14. Canvas Audio Visualizer
   // =========================================================================
   function setupCanvases() {
     drawIdleCanvas(studioVisualizerCanvas);
@@ -1304,7 +1436,7 @@
   }
 
   // =========================================================================
-  // 14. Soundboard de Bolso (Secondary View)
+  // 15. Soundboard de Bolso (Secondary View)
   // =========================================================================
   const DEFAULT_SOUNDBOARD = [
     { id: 'p1', cat: 'politeness', en: "I'm afraid that won't be possible.", pt: "Receio que isso não será possível.", ipa: "/aɪm əˈfreɪd ðæt wəʊnt biː ˈpɒsəbl̩/", cheat: "áim uh-frêid dhét wôunt bi póssubôul", tip: "'Won't' com o ditongo /əʊ/ e 't' final seco." },
@@ -1424,7 +1556,7 @@
   }
 
   // =========================================================================
-  // 15. Event Listeners & Binding
+  // 16. Event Listeners & Binding
   // =========================================================================
   function bindEvents() {
     // Mode Navigation
@@ -1449,11 +1581,63 @@
     if (toggleTranslationCheck) {
       toggleTranslationCheck.addEventListener('change', (e) => {
         isTranslationVisible = e.target.checked;
-        document.querySelectorAll('.translation-text-pt').forEach(el => {
+        document.querySelectorAll('.sentence-pt, .translation-text-pt').forEach(el => {
           el.classList.toggle('hidden', !isTranslationVisible);
         });
       });
     }
+
+    // Reading Mode Pills (Interlinear vs Paragraph)
+    if (modeInterlinearBtn && modeParagraphBtn) {
+      modeInterlinearBtn.addEventListener('click', () => {
+        readingMode = 'interlinear';
+        modeInterlinearBtn.classList.add('active');
+        modeParagraphBtn.classList.remove('active');
+        closeWordInspector();
+        renderWorkoutScript();
+      });
+
+      modeParagraphBtn.addEventListener('click', () => {
+        readingMode = 'paragraph';
+        modeParagraphBtn.classList.add('active');
+        modeInterlinearBtn.classList.remove('active');
+        closeWordInspector();
+        renderWorkoutScript();
+      });
+    }
+
+    // Word Inspector Actions
+    if (closeInspectorBtn) {
+      closeInspectorBtn.addEventListener('click', closeWordInspector);
+    }
+
+    if (inspAudioBtn) {
+      inspAudioBtn.addEventListener('click', () => {
+        if (activeInspectedTerm) {
+          speakBritish(activeInspectedTerm);
+        }
+      });
+    }
+
+    if (inspStarBtn) {
+      inspStarBtn.addEventListener('click', () => {
+        if (!activeInspectedTerm) return;
+        toggleStarExpression(activeInspectedTerm);
+        const isStarred = vaultStarred.has(activeInspectedTerm);
+        inspStarBtn.classList.toggle('starred', isStarred);
+        inspStarIcon.textContent = isStarred ? '✅' : '⭐️';
+        inspStarLabel.textContent = isStarred ? 'Salvo no Caderno' : 'Salvar no Caderno';
+      });
+    }
+
+    // Dismiss inspector when clicking outside
+    document.addEventListener('click', (e) => {
+      if (wordInspectorPopup && !wordInspectorPopup.classList.contains('hidden')) {
+        if (!wordInspectorPopup.contains(e.target) && !e.target.classList.contains('word-token')) {
+          closeWordInspector();
+        }
+      }
+    });
 
     // Master Player Controls
     setupTrailMasterPlayer();
@@ -1559,7 +1743,7 @@
           };
 
           customExpressions.unshift(newExpr);
-          vaultStarred.add(t); // Automatically star it for revision!
+          vaultStarred.add(t);
           saveVaultData();
           updateVaultBadge();
           updateVaultStats();
@@ -1632,12 +1816,10 @@
     if (!str) return '';
     return str
       .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
-  }
-
-  function escapeRegExp(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 
   // Auto-start

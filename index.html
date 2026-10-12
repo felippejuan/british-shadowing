@@ -152,18 +152,48 @@
         <!-- Tab 1: Transcript & Translation -->
         <div id="tabTranscript" class="workout-tab-pane active">
           <div class="transcript-toolbar">
-            <div class="translation-toggle-wrap">
-              <label class="switch-label">
-                <input type="checkbox" id="toggleTranslationCheck">
-                <span class="slider-toggle"></span>
-              </label>
-              <span class="toggle-text">🇧🇷 Mostrar Tradução em Português</span>
+            <div class="toolbar-left-controls">
+              <div class="translation-toggle-wrap">
+                <label class="switch-label">
+                  <input type="checkbox" id="toggleTranslationCheck" checked>
+                  <span class="slider-toggle"></span>
+                </label>
+                <span class="toggle-text">🇧🇷 Tradução em Português</span>
+              </div>
+              <div class="reading-mode-pills" role="group" aria-label="Modo de Leitura">
+                <button id="modeInterlinearBtn" class="read-pill active" title="Cada frase em inglês com tradução alinhada logo abaixo">🔀 Frase a Frase</button>
+                <button id="modeParagraphBtn" class="read-pill" title="Texto corrido em blocos">📄 Parágrafo</button>
+              </div>
             </div>
-            <span class="transcript-hint">Dica: clique em qualquer expressão grifada para ouvi-la ou salvá-la no seu Caderno.</span>
+            <span class="transcript-hint">💡 <strong>Dica de Ouro:</strong> Clique em <u>QUALQUER</u> palavra (ex: <em>grounding</em>, <em>bathed in</em>) para ver a tradução instantânea e ouvir o áudio britânico!</span>
           </div>
 
           <div id="workoutFullScriptBox" class="full-script-box">
             <!-- Rendered via app.js -->
+          </div>
+
+          <!-- Floating Word & Collocation Inspector Popover -->
+          <div id="wordInspectorPopup" class="word-inspector-card hidden" role="dialog" aria-label="Inspetor de Palavras">
+            <div class="inspector-header">
+              <div class="inspector-term-box">
+                <span class="inspector-flag">🇬🇧</span>
+                <h4 id="inspTerm" class="inspector-term">grounding</h4>
+                <span id="inspIpa" class="inspector-ipa">/ˈɡraʊn.dɪŋ/</span>
+              </div>
+              <button id="closeInspectorBtn" class="btn-icon-close" title="Fechar">✕</button>
+            </div>
+            <div class="inspector-body">
+              <p id="inspMeaning" class="inspector-meaning">Reconfortante, que traz calma, equilíbrio mental e estabilidade emocional.</p>
+              <p id="inspNote" class="inspector-note"></p>
+            </div>
+            <div class="inspector-footer">
+              <button id="inspAudioBtn" class="inspector-audio-btn">
+                <span>🔊</span> <span>Ouvir Pronúncia</span>
+              </button>
+              <button id="inspStarBtn" class="inspector-star-btn">
+                <span id="inspStarIcon">⭐️</span> <span id="inspStarLabel">Salvar no Caderno</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -457,6 +487,7 @@
     </div>
   </footer>
 
+  <script src="dictionary.js"></script>
   <script src="challenge-data.js"></script>
   <script src="app.js"></script>
 </body>
