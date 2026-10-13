@@ -662,13 +662,13 @@
     document.querySelectorAll('.word-token.is-active-inspect').forEach(el => el.classList.remove('is-active-inspect'));
   }
 
-  let activeChunkLoopInterval = null;
+  let activeChunkLoopTimer = null;
   let activeChunkLoopIndex = null;
 
   function stopChunkLoop() {
-    if (activeChunkLoopInterval) {
-      clearInterval(activeChunkLoopInterval);
-      activeChunkLoopInterval = null;
+    if (activeChunkLoopTimer) {
+      clearTimeout(activeChunkLoopTimer);
+      activeChunkLoopTimer = null;
     }
     activeChunkLoopIndex = null;
     document.querySelectorAll('.btn-chunk-loop.active').forEach(b => {
@@ -705,16 +705,20 @@
       if (icon) icon.textContent = '⏹';
       if (label) label.textContent = 'Parar';
 
-      speakBritish(chunkText);
-      const wordCount = chunkText.split(/\s+/).length;
-      const intervalMs = Math.max(3400, wordCount * 450 + 2200);
-      activeChunkLoopInterval = setInterval(() => {
-        if (activeChunkLoopIndex !== chunkIdx) {
-          stopChunkLoop();
-          return;
-        }
-        speakBritish(chunkText);
-      }, intervalMs);
+      function playNextLoop() {
+        if (activeChunkLoopIndex !== chunkIdx) return;
+        speakBritish(chunkText, () => {
+          if (activeChunkLoopIndex !== chunkIdx) return;
+          // Short, natural shadowing gap (400ms) with zero dead air
+          activeChunkLoopTimer = setTimeout(() => {
+            if (activeChunkLoopIndex === chunkIdx) {
+              playNextLoop();
+            }
+          }, 400);
+        });
+      }
+
+      playNextLoop();
     }
   }
 
@@ -872,6 +876,8 @@
   // 7. Mode Navigation (Trail vs Vault vs Soundboard)
   // =========================================================================
   function setMode(mode) {
+    stopChunkLoop();
+    stopSoundboardLoop();
     currentMode = mode;
 
     navTrailBtn.classList.toggle('active', mode === 'trail');
@@ -1957,30 +1963,40 @@
     });
   }
 
+  function stopSoundboardLoop() {
+    if (loopInterval) {
+      clearTimeout(loopInterval);
+      loopInterval = null;
+    }
+    loopActiveOnCard = null;
+    document.querySelectorAll('.loop-btn.active').forEach(b => b.classList.remove('active'));
+    stopBritishAudio();
+  }
+
   function toggleCardLoop(id, btn) {
     if (loopActiveOnCard === id) {
-      clearInterval(loopInterval);
-      loopActiveOnCard = null;
-      btn.classList.remove('active');
-      stopBritishAudio();
+      stopSoundboardLoop();
     } else {
-      if (loopInterval) clearInterval(loopInterval);
-      document.querySelectorAll('.loop-btn').forEach(b => b.classList.remove('active'));
-
+      stopSoundboardLoop();
       loopActiveOnCard = id;
       btn.classList.add('active');
 
       const phrase = allSoundboardPhrases.find(p => p.id === id);
       if (!phrase) return;
 
-      speakBritish(phrase.en);
-      loopInterval = setInterval(() => {
-        if (loopActiveOnCard !== id) {
-          clearInterval(loopInterval);
-          return;
-        }
-        speakBritish(phrase.en);
-      }, 3500);
+      function playCardNext() {
+        if (loopActiveOnCard !== id) return;
+        speakBritish(phrase.en, () => {
+          if (loopActiveOnCard !== id) return;
+          loopInterval = setTimeout(() => {
+            if (loopActiveOnCard === id) {
+              playCardNext();
+            }
+          }, 400);
+        });
+      }
+
+      playCardNext();
     }
   }
 

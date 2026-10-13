@@ -61,37 +61,21 @@
        VIEW 1: 30-DAY IMMERSION TRAIL (DEFAULT)
        ======================================================================= -->
   <main id="trailView" class="container main-trail-view">
-    <!-- Clean Trail Header -->
-    <section class="trail-hero-card">
-      <div class="trail-hero-content">
-        <div class="pill-tag">🏛️ Imersão Diária • Modern RP British Cadence</div>
-        <h2>Cultive Ritmo Natural, Cadência e Compostura Britânica.</h2>
-        <p class="trail-hero-desc">
-          Treinos diários com narrativas de ~2 minutos em inglês britânico autêntico (Ryan & Sonia). Treine por trechos com fôlego sereno, ative a tradução alinhada e clique nas palavras para entender o sentido no contexto.
-        </p>
-      </div>
-
-      <div class="trail-progress-panel">
-        <div class="progress-title-row">
-          <span>Progresso da Trilha:</span>
-          <strong id="trailPercentText">0% Concluído</strong>
-        </div>
-        <div class="progress-bar-bg">
-          <div id="trailProgressBar" class="progress-bar-fill"></div>
-        </div>
-        <div class="progress-sub-row">
-          <span id="trailDaysCompletedCount">0</span> de 30 dias dominados
-        </div>
-      </div>
-    </section>
-
     <!-- Trail Split Layout -->
     <div class="trail-split-layout">
       <!-- Left: 30-Day Calendar Sidebar -->
       <aside class="trail-sidebar" aria-label="30-Day Syllabus">
         <div class="sidebar-header">
-          <h3>O Currículo</h3>
-          <span class="sidebar-sub">30 Sessões de Imersão</span>
+          <div class="sidebar-header-row">
+            <h3 class="sidebar-title">Currículo</h3>
+            <span class="sidebar-percent" id="trailPercentText">0%</span>
+          </div>
+          <div class="sidebar-progress-bar-bg">
+            <div id="trailProgressBar" class="progress-bar-fill"></div>
+          </div>
+          <div class="sidebar-sub-count">
+            <span id="trailDaysCompletedCount">0</span> de 30 dias dominados
+          </div>
         </div>
         <div id="trailDaysSidebarList" class="trail-days-accordion">
           <!-- Populated dynamically via app.js -->
@@ -166,7 +150,7 @@
               </div>
             </div>
             <div class="toolbar-hint-pill">
-              <span>💡</span> <span>Clique em <strong>▶ Ouvir</strong> para escutar o trecho, ou em <u>qualquer palavra</u> para abrir o dicionário contextual.</span>
+              <span>💡</span> <span>Clique nas palavras para significado contextual</span>
             </div>
           </div>
 
